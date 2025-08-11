@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>电子工资条管理系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .hero-section {
+            text-align: center;
+            background: white;
+            border-radius: 20px;
+            padding: 60px 40px;
+            margin-bottom: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+        }
+
+        .hero-title {
+            font-size: 3.5em;
+            font-weight: 300;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-subtitle {
+            font-size: 1.3em;
+            color: #6c757d;
+            margin-bottom: 40px;
+            line-height: 1.6;
+        }
+
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 30px;
+            margin: 40px 0;
+        }
+
+        .feature-card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        }
+
+        .feature-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            font-size: 2em;
+            color: white;
+        }
+
+        .feature-card h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+
+        .feature-card p {
+            color: #6c757d;
+            line-height: 1.6;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 40px;
+        }
+
+        .btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s;
+            min-width: 200px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(79, 172, 254, 0.4);
+        }
+
+        .btn-secondary {
+            background: white;
+            color: #4facfe;
+            border: 2px solid #4facfe;
+        }
+
+        .btn-secondary:hover {
+            background: #4facfe;
+            color: white;
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(79, 172, 254, 0.3);
+        }
+
+        .system-status {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-top: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+            border-bottom: 1px solid #f1f3f4;
+        }
+
+        .status-item:last-child {
+            border-bottom: none;
+        }
+
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
+
+        .status-online {
+            background: #28a745;
+            animation: pulse 2s infinite;
+        }
+
+        .status-offline {
+            background: #dc3545;
+        }
+
+        @keyframes pulse {
+            0% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
+
+            100% {
+                opacity: 1;
+            }
+        }
+
+        .demo-section {
+            background: white;
+            border-radius: 15px;
+            padding: 40px;
+            margin-top: 30px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .demo-screenshot {
+            width: 100%;
+            max-width: 600px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            margin: 20px 0;
+        }
+
+        .footer {
+            text-align: center;
+            color: white;
+            margin-top: 40px;
+            padding: 20px;
+        }
+
+        .footer a {
+            color: white;
+            text-decoration: none;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+
+            .hero-section {
+                padding: 40px 20px;
+            }
+
+            .hero-title {
+                font-size: 2.5em;
+            }
+
+            .action-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .btn {
+                min-width: 250px;
+            }
+
+            .features {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #4facfe;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <!-- 主标题区域 -->
+        <div class="hero-section">
+            <h1 class="hero-title">电子工资条管理系统</h1>
+            <p class="hero-subtitle">
+                高效、安全、便捷的薪资管理解决方案<br>
+                支持电子签名，实现无纸化办公
+            </p>
+
+            <div class="action-buttons">
+                <a href="login.html" class="btn btn-primary">管理员登录</a>
+                <a href="#demo" class="btn btn-secondary" onclick="scrollToDemo()">查看演示</a>
+            </div>
+        </div>
+
+        <!-- 功能特性 -->
+        <div class="features">
+            <div class="feature-card">
+                <div class="feature-icon">👥</div>
+                <h3>员工管理</h3>
+                <p>完整的员工信息管理，支持部门、职位等多维度组织架构</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">💰</div>
+                <h3>工资条生成</h3>
+                <p>灵活的工资模板，自动计算应发、实发金额，支持多种薪资结构</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">✍️</div>
+                <h3>电子签名</h3>
+                <p>Canvas手写签名，支持移动端，安全可靠的数字签名验证</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">📱</div>
+                <h3>移动友好</h3>
+                <p>响应式设计，手机、平板、电脑全平台支持，随时随地查看工资条</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">🔒</div>
+                <h3>安全保障</h3>
+                <p>签名哈希验证、IP记录、设备指纹，多重安全保护机制</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">📊</div>
+                <h3>批量操作</h3>
+                <p>支持批量发布工资条，自动邮件通知，提高HR工作效率</p>
+            </div>
+        </div>
+
+        <!-- 系统状态 -->
+        <div class="system-status">
+            <h3 style="margin-bottom: 20px; color: #2c3e50;">系统状态</h3>
+            <div class="loading" id="statusLoading">
+                <div class="spinner"></div>
+                <p>检测中...</p>
+            </div>
+            <div id="statusContent">
+                <div class="status-item">
+                    <span>
+                        <span class="status-indicator" id="backendStatus"></span>
+                        后端服务
+                    </span>
+                    <span id="backendStatusText">检测中...</span>
+                </div>
+                <div class="status-item">
+                    <span>
+                        <span class="status-indicator" id="databaseStatus"></span>
+                        数据库连接
+                    </span>
+                    <span id="databaseStatusText">检测中...</span>
+                </div>
+                <div class="status-item">
+                    <span>
+                        <span class="status-indicator status-online"></span>
+                        前端界面
+                    </span>
+                    <span style="color: #28a745;">正常运行</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 演示区域 -->
+        <div class="demo-section" id="demo">
+            <h2 style="color: #2c3e50; margin-bottom: 20px;">系统演示</h2>
+            <p style="color: #6c757d; margin-bottom: 30px;">
+                以下是系统的主要功能界面展示
+            </p>
+
+            <!-- 这里可以放置系统截图 -->
+            <div style="background: #f8f9fa; padding: 40px; border-radius: 10px; margin: 20px 0;">
+                <h4 style="color: #495057; margin-bottom: 15px;">管理员后台</h4>
+                <ul style="text-align: left; max-width: 400px; margin: 0 auto; color: #6c757d;">
+                    <li>员工信息管理</li>
+                    <li>工资条创建和编辑</li>
+                    <li>批量发布功能</li>
+                    <li>通知记录查看</li>
+                </ul>
+            </div>
+
+            <div style="background: #f8f9fa; padding: 40px; border-radius: 10px; margin: 20px 0;">
+                <h4 style="color: #495057; margin-bottom: 15px;">员工查看页面</h4>
+                <ul style="text-align: left; max-width: 400px; margin: 0 auto; color: #6c757d;">
+                    <li>工资条详细信息</li>
+                    <li>电子签名功能</li>
+                    <li>历史工资条查询</li>
+                    <li>移动端优化界面</li>
+                </ul>
+            </div>
+
+            <div class="action-buttons" style="margin-top: 30px;">
+                <a href="admin.html" class="btn btn-primary">进入管理后台</a>
+                <a href="employee.html?employee=1" class="btn btn-secondary">员工查看演示</a>
+            </div>
+        </div>
+
+        <!-- 页脚 -->
+        <div class="footer">
+            <p>&copy; 2024 电子工资条管理系统 | 基于 Golang + Canvas 电子签名</p>
+            <p>
+                <a href="https://github.com/your-repo/payroll-system">GitHub</a> |
+                <a href="#contact">联系我们</a> |
+                <a href="#docs">使用文档</a>
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // 页面加载完成后检测系统状态
+        document.addEventListener('DOMContentLoaded', function () {
+            checkSystemStatus();
+        });
+
+        // 检测系统状态
+        async function checkSystemStatus() {
+            const statusLoading = document.getElementById('statusLoading');
+            const statusContent = document.getElementById('statusContent');
+
+            statusLoading.style.display = 'block';
+
+            // 检测后端服务
+            try {
+                const response = await fetch('/api/v1/employees', {
+                    method: 'GET',
+                    timeout: 5000
+                });
+
+                if (response.ok) {
+                    updateStatus('backend', true, '正常运行');
+                    updateStatus('database', true, '连接正常');
+                } else {
+                    updateStatus('backend', false, '服务异常');
+                    updateStatus('database', false, '连接失败');
+                }
+            } catch (error) {
+                updateStatus('backend', false, '无法连接');
+                updateStatus('database', false, '无法连接');
+            }
+
+            statusLoading.style.display = 'none';
+        }
+
+        // 更新状态显示
+        function updateStatus(type, isOnline, message) {
+            const statusIndicator = document.getElementById(`${type}Status`);
+            const statusText = document.getElementById(`${type}StatusText`);
+
+            statusIndicator.className = `status-indicator ${isOnline ? 'status-online' : 'status-offline'}`;
+            statusText.textContent = message;
+            statusText.style.color = isOnline ? '#28a745' : '#dc3545';
+        }
+
+        // 滚动到演示区域
+        function scrollToDemo() {
+            document.getElementById('demo').scrollIntoView({
+                behavior: 'smooth'
+            });
+        }
+
+        // 快速入门指南
+        function showQuickStart() {
+            const steps = [
+                '1. 确保后端服务已启动 (go run main.go)',
+                '2. 点击"管理员后台"进入系统',
+                '3. 添加员工信息',
+                '4. 创建工资条',
+                '5. 发布给员工',
+                '6. 员工进行电子签名确认'
+            ];
+
+            alert('快速入门步骤：\n\n' + steps.join('\n'));
+        }
+
+        // 键盘快捷键
+        document.addEventListener('keydown', function (e) {
+            // Ctrl + / 显示快速入门
+            if (e.ctrlKey && e.key === '/') {
+                e.preventDefault();
+                showQuickStart();
+            }
+
+            // Ctrl + 1 进入管理后台
+            if (e.ctrlKey && e.key === '1') {
+                e.preventDefault();
+                window.location.href = 'admin.html';
+            }
+        });
+
+        // 添加一些交互动画效果
+        function addInteractiveEffects() {
+            // 鼠标跟随效果
+            document.addEventListener('mousemove', function (e) {
+                const cards = document.querySelectorAll('.feature-card');
+                cards.forEach(card => {
+                    const rect = card.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+
+                    if (x >= 0 && x <= rect.width && y >= 0 && y <= rect.height) {
+                        const centerX = rect.width / 2;
+                        const centerY = rect.height / 2;
+                        const rotateX = (y - centerY) / 10;
+                        const rotateY = (centerX - x) / 10;
+
+                        card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-10px)`;
+                    } else {
+                        card.style.transform = '';
+                    }
+                });
+            });
+        }
+
+        // 页面加载完成后添加交互效果
+        setTimeout(addInteractiveEffects, 1000);
+    </script>
+</body>
+
+</html>

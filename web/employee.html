@@ -1,0 +1,1037 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>员工工资条</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+
+        .payroll-section {
+            padding: 30px;
+        }
+
+        .employee-info {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+
+        .employee-info h3 {
+            color: #495057;
+            margin-bottom: 15px;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            padding-bottom: 5px;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .payroll-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .payroll-table th,
+        .payroll-table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .payroll-table th {
+            background: #6c757d;
+            color: white;
+            font-weight: 500;
+        }
+
+        .payroll-table tr:hover {
+            background: #e9ecef;
+        }
+
+        .total-row {
+            background: #e8f5e8 !important;
+            font-weight: bold;
+        }
+
+        .signature-section {
+            background: #f8f9fa;
+            padding: 30px;
+            border-top: 2px solid #dee2e6;
+        }
+
+        .signature-container {
+            display: flex;
+            gap: 30px;
+            margin-bottom: 20px;
+        }
+
+        .signature-pad {
+            flex: 1;
+        }
+
+        .signature-pad h3 {
+            margin-bottom: 15px;
+            color: #495057;
+        }
+
+        #signatureCanvas {
+            border: 2px dashed #6c757d;
+            border-radius: 10px;
+            background: white;
+            cursor: crosshair;
+            display: block;
+            transition: border-color 0.3s;
+        }
+
+        #signatureCanvas:hover {
+            border-color: #4facfe;
+        }
+
+        .signature-controls {
+            margin-top: 15px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(79, 172, 254, 0.3);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+            transform: translateY(-2px);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(17, 153, 142, 0.3);
+        }
+
+        .signature-info {
+            flex: 1;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid #dee2e6;
+        }
+
+        .signature-info h4 {
+            color: #495057;
+            margin-bottom: 15px;
+        }
+
+        .status {
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+            text-align: center;
+            font-weight: 500;
+        }
+
+        .status.pending {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+
+        .status.signed {
+            background: #d1edff;
+            color: #004085;
+            border: 1px solid #74b9ff;
+        }
+
+        .signature-preview {
+            margin-top: 15px;
+            padding: 10px;
+            background: white;
+            border-radius: 5px;
+            border: 1px solid #dee2e6;
+        }
+
+        .signature-preview img {
+            max-width: 200px;
+            max-height: 60px;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+        }
+
+        .history-section {
+            padding: 30px;
+            border-top: 2px solid #dee2e6;
+        }
+
+        .history-item {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .history-item:hover {
+            background: #e9ecef;
+            transform: translateY(-2px);
+        }
+
+        .history-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .history-period {
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #495057;
+        }
+
+        .history-amount {
+            font-size: 1.1em;
+            color: #28a745;
+            font-weight: bold;
+        }
+
+        .history-status {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .status-published {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .status-signed {
+            background: #d1edff;
+            color: #004085;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #4facfe;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .signature-container {
+                flex-direction: column;
+            }
+
+            .signature-controls {
+                justify-content: center;
+            }
+
+            #signatureCanvas {
+                width: 100%;
+            }
+
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .history-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+        }
+
+        .back-button {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1000;
+        }
+    </style>
+</head>
+
+<body>
+    <button class="btn btn-secondary back-button" onclick="history.back()">← 返回</button>
+
+    <div class="container">
+        <div class="header">
+            <h1>电子工资条</h1>
+            <p id="headerSubtitle">安全 · 便捷 · 环保</p>
+        </div>
+
+        <!-- 加载状态 -->
+        <div class="loading" id="mainLoading">
+            <div class="spinner"></div>
+            <p>加载中...</p>
+        </div>
+
+        <!-- 单个工资条查看 -->
+        <div id="singlePayrollView" style="display: none;">
+            <!-- 员工信息 -->
+            <div class="payroll-section">
+                <div class="employee-info">
+                    <h3>员工信息</h3>
+                    <div class="info-grid" id="employeeInfo">
+                        <!-- 员工信息将通过JS动态填充 -->
+                    </div>
+                </div>
+
+                <!-- 工资明细 -->
+                <h2 id="payrollPeriod">工资明细</h2>
+                <table class="payroll-table" id="payrollTable">
+                    <thead>
+                        <tr>
+                            <th>项目</th>
+                            <th>金额 (¥)</th>
+                            <th>备注</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- 工资明细将通过JS动态填充 -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- 电子签名区域 -->
+            <div class="signature-section" id="signatureSection">
+                <h2>电子签名确认</h2>
+                <p style="margin-bottom: 20px; color: #6c757d;">请在下方签名板上签署您的姓名，确认已查看并核实工资明细无误。</p>
+
+                <div class="signature-container">
+                    <div class="signature-pad">
+                        <h3>员工签名</h3>
+                        <canvas id="signatureCanvas" width="400" height="150"></canvas>
+                        <div class="signature-controls">
+                            <button class="btn btn-secondary" onclick="clearSignature()">清除签名</button>
+                            <button class="btn btn-primary" onclick="saveSignature()">保存签名</button>
+                            <button class="btn btn-success" onclick="confirmPayroll()">确认工资条</button>
+                        </div>
+                        <div id="signaturePreview" class="signature-preview" style="display: none;">
+                            <h4>签名预览：</h4>
+                            <img id="signatureImage" src="" alt="签名">
+                        </div>
+                    </div>
+
+                    <div class="signature-info">
+                        <h4>签名信息</h4>
+                        <div id="signatureInfoContent">
+                            <!-- 签名信息将通过JS动态填充 -->
+                        </div>
+                    </div>
+                </div>
+
+                <div id="statusMessage" class="status pending">
+                    <strong>状态：</strong> <span id="statusText">等待员工签名确认</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 工资条历史列表 -->
+        <div id="payrollHistoryView" style="display: none;">
+            <div class="history-section">
+                <h2>工资条历史</h2>
+                <div id="historyList">
+                    <!-- 历史记录将通过JS动态填充 -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="api-client.js"></script>
+    <script>
+        // 初始化API客户端
+        const api = new PayrollAPI();
+        const manager = new PayrollManager();
+
+        // Canvas签名功能
+        const canvas = document.getElementById('signatureCanvas');
+        const ctx = canvas.getContext('2d');
+        let isDrawing = false;
+        let hasSignature = false;
+        let currentPayroll = null;
+
+        // 页面参数
+        const urlParams = new URLSearchParams(window.location.search);
+        const payrollId = urlParams.get('payroll');
+        const employeeId = urlParams.get('employee');
+
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', function () {
+            setupSignatureCanvas();
+
+            if (payrollId) {
+                loadSinglePayroll(payrollId);
+            } else if (employeeId) {
+                loadEmployeePayrolls(employeeId);
+            } else {
+                showError('缺少必要参数');
+            }
+        });
+
+        // 设置Canvas签名
+        function setupSignatureCanvas() {
+            // 设置canvas样式
+            ctx.strokeStyle = '#2c3e50';
+            ctx.lineWidth = 2;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+
+            // 鼠标事件
+            canvas.addEventListener('mousedown', startDrawing);
+            canvas.addEventListener('mousemove', draw);
+            canvas.addEventListener('mouseup', stopDrawing);
+            canvas.addEventListener('mouseout', stopDrawing);
+
+            // 触摸事件（移动端支持）
+            canvas.addEventListener('touchstart', handleTouch);
+            canvas.addEventListener('touchmove', handleTouch);
+            canvas.addEventListener('touchend', stopDrawing);
+
+            // 响应式canvas大小调整
+            resizeCanvas();
+            window.addEventListener('resize', resizeCanvas);
+        }
+
+        // Canvas绘制事件处理
+        function startDrawing(e) {
+            isDrawing = true;
+            hasSignature = true;
+            const rect = canvas.getBoundingClientRect();
+            ctx.beginPath();
+            ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
+        }
+
+        function draw(e) {
+            if (!isDrawing) return;
+            const rect = canvas.getBoundingClientRect();
+            ctx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
+            ctx.stroke();
+        }
+
+        function stopDrawing() {
+            isDrawing = false;
+        }
+
+        function handleTouch(e) {
+            e.preventDefault();
+            const touch = e.touches[0];
+            const rect = canvas.getBoundingClientRect();
+
+            if (e.type === 'touchstart') {
+                startDrawing({ clientX: touch.clientX, clientY: touch.clientY });
+            } else if (e.type === 'touchmove' && isDrawing) {
+                draw({ clientX: touch.clientX, clientY: touch.clientY });
+            }
+        }
+
+        function resizeCanvas() {
+            const container = canvas.parentElement;
+            const containerWidth = container.offsetWidth - 40;
+            if (containerWidth < 400) {
+                canvas.width = containerWidth;
+                canvas.style.width = containerWidth + 'px';
+            }
+        }
+
+        // 加载单个工资条
+        async function loadSinglePayroll(payrollId) {
+            const loading = document.getElementById('mainLoading');
+            const singleView = document.getElementById('singlePayrollView');
+
+            try {
+                loading.style.display = 'block';
+
+                const response = await api.getPayroll(payrollId);
+                currentPayroll = response.data;
+
+                // 更新页面标题
+                document.getElementById('headerSubtitle').textContent =
+                    `${currentPayroll.employee.name} - ${currentPayroll.period} 工资条`;
+
+                // 填充员工信息
+                fillEmployeeInfo(currentPayroll.employee);
+
+                // 填充工资明细
+                fillPayrollDetails(currentPayroll);
+
+                // 检查工资条状态
+                if (currentPayroll.status === 'draft') {
+                    updateStatus('draft', '工资条尚未发布，请联系管理员发布后才能签名');
+                    // 禁用签名功能
+                    canvas.style.pointerEvents = 'none';
+                    canvas.style.opacity = '0.5';
+                    document.querySelector('.signature-controls').style.display = 'none';
+                } else if (currentPayroll.status === 'published') {
+                    updateStatus('published', '工资条已发布，请确认签名');
+                    // 启用签名功能
+                    canvas.style.pointerEvents = 'auto';
+                    canvas.style.opacity = '1';
+                    document.querySelector('.signature-controls').style.display = 'flex';
+                } else if (currentPayroll.status === 'signed') {
+                    // 检查签名状态
+                    await checkSignatureStatus(payrollId);
+                }
+
+                singleView.style.display = 'block';
+
+            } catch (error) {
+                showError('加载工资条失败: ' + error.message);
+            } finally {
+                loading.style.display = 'none';
+            }
+        }
+
+        // 填充员工信息
+        function fillEmployeeInfo(employee) {
+            const employeeInfo = document.getElementById('employeeInfo');
+            employeeInfo.innerHTML = `
+                <div class="info-item">
+                    <span>姓名：</span>
+                    <span>${employee.name}</span>
+                </div>
+                <div class="info-item">
+                    <span>员工编号：</span>
+                    <span>${employee.employee_no}</span>
+                </div>
+                <div class="info-item">
+                    <span>部门：</span>
+                    <span>${employee.department}</span>
+                </div>
+                <div class="info-item">
+                    <span>职位：</span>
+                    <span>${employee.position}</span>
+                </div>
+            `;
+
+            // 填充签名信息
+            const signatureInfo = document.getElementById('signatureInfoContent');
+            signatureInfo.innerHTML = `
+                <div class="info-item">
+                    <span>员工姓名：</span>
+                    <span>${employee.name}</span>
+                </div>
+                <div class="info-item">
+                    <span>员工编号：</span>
+                    <span>${employee.employee_no}</span>
+                </div>
+                <div class="info-item">
+                    <span>部门：</span>
+                    <span>${employee.department}</span>
+                </div>
+                <div class="info-item">
+                    <span>签名时间：</span>
+                    <span id="signTime">-</span>
+                </div>
+                <div class="info-item">
+                    <span>IP地址：</span>
+                    <span id="ipAddress">-</span>
+                </div>
+                <div class="info-item">
+                    <span>设备信息：</span>
+                    <span id="deviceInfo">-</span>
+                </div>
+            `;
+        }
+
+        // 填充工资明细
+        function fillPayrollDetails(payroll) {
+            let periodText = `${payroll.period} 工资明细`;
+            if (payroll.is_prorated) {
+                periodText += ` (实际工作${payroll.work_days}天/全月${payroll.month_days}天)`;
+            }
+            document.getElementById('payrollPeriod').textContent = periodText;
+
+            const payrollData = JSON.parse(payroll.payroll_data);
+            const tbody = document.querySelector('#payrollTable tbody');
+
+            // 获取模板字段定义
+            let templateFields = {};
+            try {
+                if (payroll.template && payroll.template.fields) {
+                    templateFields = JSON.parse(payroll.template.fields);
+                }
+            } catch (e) {
+                console.error('解析模板字段失败:', e);
+            }
+
+            // 定义字段名称映射（当模板中没有定义时使用）
+            const fieldNameMap = {
+                'basic_salary': '基本工资',
+                'performance': '绩效奖金',
+                'meal_allowance': '餐补',
+                'transport': '交通补贴',
+                'housing': '住房补贴',
+                'communication': '通讯补贴',
+                'overtime': '加班费',
+                'bonus': '其他奖金',
+                'absence_deduction': '缺勤扣款',
+                'late_penalty': '迟到罚款',
+                'tax': '个人所得税',
+                'social_insurance': '社保',
+                'housing_fund': '住房公积金'
+            };
+
+            // 识别扣款项的关键词
+            const deductionKeywords = ['tax', 'insurance', 'deduction', '扣款', '扣除', '罚款', 'penalty', 'fund', '公积金'];
+
+            let html = '';
+            let incomeItems = [];
+            let deductionItems = [];
+
+            // 计算比例
+            const ratio = payroll.is_prorated && payroll.month_days > 0 ?
+                payroll.work_days / payroll.month_days : 1;
+
+            // 分类收入项和扣款项
+            for (let key in payrollData) {
+                const value = payrollData[key];
+                const fieldName = templateFields[key]?.name || fieldNameMap[key] || key;
+
+                // 检查是否为扣款项
+                let isDeduction = false;
+                const keyLower = key.toLowerCase();
+                for (let keyword of deductionKeywords) {
+                    if (keyLower.includes(keyword)) {
+                        isDeduction = true;
+                        break;
+                    }
+                }
+
+                if (isDeduction) {
+                    deductionItems.push({ key, fieldName, value });
+                } else {
+                    incomeItems.push({ key, fieldName, value });
+                }
+            }
+
+            // 基本工资字段名称（只有这些按比例计算）
+            const basicSalaryKeys = ['basic_salary', 'base_salary', '基本工资', '底薪'];
+
+            // 计算收入项总和
+            let totalIncome = 0;
+
+            // 渲染收入项（只有基本工资按比例，其他保持原值）
+            incomeItems.forEach(item => {
+                const originalAmount = typeof item.value === 'number' ? item.value : 0;
+
+                // 检查是否为基本工资
+                const isBasicSalary = basicSalaryKeys.includes(item.key.toLowerCase()) ||
+                    basicSalaryKeys.includes(item.fieldName);
+
+                // 只有基本工资按比例，其他收入项保持原值
+                const displayAmount = payroll.is_prorated && isBasicSalary ?
+                    originalAmount * ratio : originalAmount;
+                totalIncome += displayAmount;
+
+                html += `
+                    <tr>
+                        <td>${item.fieldName}</td>
+                        <td>${displayAmount.toFixed(2)}</td>
+                        <td>${payroll.is_prorated && isBasicSalary && originalAmount !== displayAmount ?
+                        `原值: ${originalAmount.toFixed(2)}` : ''}</td>
+                    </tr>
+                `;
+            });
+
+            // 应发工资行（使用计算的总收入）
+            html += `
+                <tr style="background: #f1f3f4;">
+                    <td><strong>应发工资</strong></td>
+                    <td><strong>${totalIncome.toFixed(2)}</strong></td>
+                    <td></td>
+                </tr>
+            `;
+
+            // 计算扣款项总和（不按比例）
+            let totalDeduction = 0;
+
+            // 渲染扣款项（扣款项保持原值）
+            deductionItems.forEach(item => {
+                const amount = typeof item.value === 'number' ? item.value : 0;
+                totalDeduction += amount;
+                html += `
+                    <tr>
+                        <td>${item.fieldName}</td>
+                        <td>-${amount.toFixed(2)}</td>
+                        <td></td>
+                    </tr>
+                `;
+            });
+
+            // 计算实发工资
+            const netPay = totalIncome - totalDeduction;
+
+            // 实发工资行
+            html += `
+                <tr class="total-row">
+                    <td><strong>实发工资</strong></td>
+                    <td><strong>${netPay.toFixed(2)}</strong></td>
+                    <td></td>
+                </tr>
+            `;
+
+            // 按比例计算的说明
+            if (payroll.is_prorated) {
+                const ratioPercent = ratio * 100;
+                html += `
+                    <tr class="info-row">
+                        <td colspan="3" style="text-align: center; color: #666;">
+                            <small>注：基本工资按实际工作天数比例计算 (${payroll.work_days}天/${payroll.month_days}天 = ${ratioPercent.toFixed(1)}%)，其他补贴和扣款项保持原值</small>
+                        </td>
+                    </tr>
+                `;
+            }
+
+            tbody.innerHTML = html;
+        }
+
+        // 检查签名状态
+        async function checkSignatureStatus(payrollId) {
+            try {
+                const response = await api.getPayrollSignature(payrollId);
+                const signature = response.data;
+
+                if (signature) {
+                    // 已签名状态
+                    updateStatus('signed', '工资条已确认签名');
+
+                    // 显示签名信息
+                    document.getElementById('signTime').textContent =
+                        new Date(signature.signed_at).toLocaleString();
+                    document.getElementById('ipAddress').textContent = signature.ip_address;
+                    document.getElementById('deviceInfo').textContent = signature.device_info;
+
+                    // 显示签名图片
+                    if (signature.signature_data) {
+                        const signatureImage = document.getElementById('signatureImage');
+                        signatureImage.src = `${signature.signature_data}`;
+                        document.getElementById('signaturePreview').style.display = 'block';
+                    }
+
+                    // 禁用签名区域
+                    canvas.style.pointerEvents = 'none';
+                    canvas.style.opacity = '0.7';
+
+                    // 隐藏控制按钮
+                    document.querySelector('.signature-controls').style.display = 'none';
+                }
+
+            } catch (error) {
+                // 没有签名记录，保持待签名状态
+                console.log('No signature found, payroll is ready for signing');
+            }
+        }
+
+        // 签名操作
+        function clearSignature() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            hasSignature = false;
+            document.getElementById('signaturePreview').style.display = 'none';
+            updateStatus('pending', '等待员工签名确认');
+        }
+
+        function saveSignature() {
+            if (!hasSignature) {
+                alert('请先进行签名！');
+                return;
+            }
+
+            const signatureDataURL = canvas.toDataURL();
+            const signatureImage = document.getElementById('signatureImage');
+            signatureImage.src = signatureDataURL;
+            document.getElementById('signaturePreview').style.display = 'block';
+
+            // 更新签名时间
+            document.getElementById('signTime').textContent = new Date().toLocaleString();
+
+            alert('签名已保存！');
+        }
+
+        async function confirmPayroll() {
+            if (!hasSignature) {
+                alert('请先完成签名！');
+                return;
+            }
+
+            if (!currentPayroll) {
+                alert('工资条数据异常！');
+                return;
+            }
+
+            // 检查工资条状态
+            if (currentPayroll.status !== 'published') {
+                if (currentPayroll.status === 'draft') {
+                    alert('工资条尚未发布，请联系管理员先发布工资条后再进行签名。');
+                } else if (currentPayroll.status === 'signed') {
+                    alert('工资条已经签名，无需重复签名。');
+                }
+                return;
+            }
+
+            if (!confirm('确认提交签名吗？提交后将无法修改。')) {
+                return;
+            }
+
+            try {
+                // 获取签名数据
+                const signatureDataURL = canvas.toDataURL();
+
+                // 获取设备和网络信息
+                const signatureData = {
+                    payroll_id: currentPayroll.id,
+                    signature_data: signatureDataURL,
+                    ip_address: await getClientIP(),
+                    user_agent: navigator.userAgent,
+                    device_info: getDeviceInfo()
+                };
+
+                const response = await api.signPayroll(signatureData);
+
+                updateStatus('signed', '工资条已确认签名，数据已安全保存');
+
+                // 禁用签名区域
+                canvas.style.pointerEvents = 'none';
+                canvas.style.opacity = '0.7';
+
+                // 隐藏控制按钮
+                document.querySelector('.signature-controls').style.display = 'none';
+
+                // 显示签名信息
+                document.getElementById('signTime').textContent = new Date().toLocaleString();
+                document.getElementById('ipAddress').textContent = signatureData.ip_address;
+                document.getElementById('deviceInfo').textContent = signatureData.device_info;
+
+                alert('工资条确认成功！签名已保存到系统中。');
+
+                // 重新加载工资条以更新状态
+                setTimeout(() => {
+                    loadSinglePayroll(currentPayroll.id);
+                }, 1500);
+
+            } catch (error) {
+                if (error.message.includes('not published')) {
+                    alert('工资条尚未发布，请联系管理员先发布工资条后再进行签名。');
+                } else if (error.message.includes('already signed')) {
+                    alert('该工资条已经签名，无需重复签名。');
+                } else {
+                    alert('签名失败: ' + error.message);
+                }
+            }
+        }
+
+        // 加载员工工资条历史
+        async function loadEmployeePayrolls(employeeId) {
+            const loading = document.getElementById('mainLoading');
+            const historyView = document.getElementById('payrollHistoryView');
+
+            try {
+                loading.style.display = 'block';
+
+                const response = await api.getEmployeePayrolls(employeeId);
+                const payrolls = response.data;
+
+                if (payrolls.length > 0) {
+                    document.getElementById('headerSubtitle').textContent =
+                        `${payrolls[0].employee.name} 的工资条历史`;
+                }
+
+                fillPayrollHistory(payrolls);
+                historyView.style.display = 'block';
+
+            } catch (error) {
+                showError('加载工资条历史失败: ' + error.message);
+            } finally {
+                loading.style.display = 'none';
+            }
+        }
+
+        // 填充工资条历史
+        function fillPayrollHistory(payrolls) {
+            const historyList = document.getElementById('historyList');
+
+            if (payrolls.length === 0) {
+                historyList.innerHTML = '<p style="text-align: center; color: #6c757d;">暂无工资条记录</p>';
+                return;
+            }
+
+            historyList.innerHTML = '';
+
+            payrolls.forEach(payroll => {
+                const historyItem = document.createElement('div');
+                historyItem.className = 'history-item';
+                historyItem.onclick = () => viewPayrollDetail(payroll.id);
+
+                // 确保数值存在，使用默认值0
+                const totalNet = payroll.total_net || 0;
+                const totalGross = payroll.total_gross || 0;
+
+                historyItem.innerHTML = `
+                    <div class="history-header">
+                        <div class="history-period">${payroll.period}</div>
+                        <div class="history-amount">¥${totalNet.toFixed(2)}</div>
+                        <span class="history-status status-${payroll.status}">${getStatusText(payroll.status)}</span>
+                    </div>
+                    <div style="color: #6c757d; font-size: 14px;">
+                        应发: ¥${totalGross.toFixed(2)} | 
+                        实发: ¥${totalNet.toFixed(2)} | 
+                        ${payroll.published_at ? '发布时间: ' + new Date(payroll.published_at).toLocaleDateString() : ''}
+                    </div>
+                `;
+
+                historyList.appendChild(historyItem);
+            });
+        }
+
+        // 查看工资条详情
+        function viewPayrollDetail(payrollId) {
+            window.location.href = `employee.html?payroll=${payrollId}`;
+        }
+
+        // 辅助函数
+        function getStatusText(status) {
+            const statusMap = {
+                'published': '已发布',
+                'signed': '已签名'
+            };
+            return statusMap[status] || status;
+        }
+
+        function updateStatus(type, message) {
+            const statusEl = document.getElementById('statusMessage');
+            const statusText = document.getElementById('statusText');
+            statusEl.className = `status ${type}`;
+            statusText.textContent = message;
+        }
+
+        async function getClientIP() {
+            try {
+                const response = await fetch('https://api.ipify.org?format=json');
+                const data = await response.json();
+                return data.ip;
+            } catch (error) {
+                return '未知IP';
+            }
+        }
+
+        function getDeviceInfo() {
+            const userAgent = navigator.userAgent;
+            if (/Android/i.test(userAgent)) return 'Android设备';
+            if (/iPhone|iPad|iPod/i.test(userAgent)) return 'iOS设备';
+            if (/Windows/i.test(userAgent)) return 'Windows设备';
+            if (/Mac/i.test(userAgent)) return 'Mac设备';
+            return '未知设备';
+        }
+
+        function showError(message) {
+            document.getElementById('mainLoading').style.display = 'none';
+            document.querySelector('.container').innerHTML = `
+                <div class="header">
+                    <h1>错误</h1>
+                    <p>${message}</p>
+                </div>
+                <div style="padding: 30px; text-align: center;">
+                    <button class="btn btn-primary" onclick="history.back()">返回</button>
+                </div>
+            `;
+        }
+    </script>
+</body>
+
+</html>

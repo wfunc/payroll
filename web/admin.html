@@ -1,0 +1,1518 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>电子工资条管理系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        .header h1 {
+            color: #2c3e50;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .nav-tabs {
+            display: flex;
+            background: white;
+            border-radius: 15px;
+            padding: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            overflow-x: auto;
+        }
+
+        .tab-button {
+            padding: 15px 25px;
+            border: none;
+            background: transparent;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s;
+            white-space: nowrap;
+            margin-right: 10px;
+        }
+
+        .tab-button.active {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .tab-button:hover:not(.active) {
+            background: #f8f9fa;
+        }
+
+        .tab-content {
+            display: none;
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #2c3e50;
+            font-weight: 500;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #4facfe;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(79, 172, 254, 0.3);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ff416c 0%, #ff4b2b 100%);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .table th,
+        .table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .status-badge.status-active {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+        
+        .status-badge.status-inactive,
+        .status-badge.status-resigned {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .status-draft {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-published {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .status-signed {
+            background: #d1edff;
+            color: #004085;
+        }
+
+        .card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #4facfe;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 30px;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .close:hover {
+            color: #000;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+
+            .nav-tabs {
+                flex-direction: column;
+            }
+
+            .tab-button {
+                margin-right: 0;
+                margin-bottom: 5px;
+            }
+
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+
+            .table {
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <h1>电子工资条管理系统</h1>
+                    <p>高效、安全、便捷的薪资管理解决方案</p>
+                </div>
+                <div class="user-info" style="display: flex; align-items: center; gap: 15px;">
+                    <span id="currentUser" style="color: #666;"></span>
+                    <button class="btn btn-secondary" onclick="logout()" style="padding: 8px 16px; font-size: 14px;">退出登录</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="nav-tabs">
+            <button class="tab-button active" onclick="switchTab('employees', event)">员工管理</button>
+            <button class="tab-button" onclick="switchTab('payrolls', event)">工资条管理</button>
+            <button class="tab-button" onclick="switchTab('templates', event)">模板管理</button>
+            <button class="tab-button" onclick="switchTab('publish', event)">批量发布</button>
+            <button class="tab-button" onclick="switchTab('notifications', event)">通知记录</button>
+        </div>
+
+        <!-- 员工管理 -->
+        <div id="employees" class="tab-content active">
+            <h2>员工管理</h2>
+
+            <div class="card">
+                <h3>添加新员工</h3>
+                <form id="employeeForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>姓名</label>
+                            <input type="text" class="form-control" name="name" required>
+                        </div>
+                        <div class="form-group">
+                            <label>员工编号</label>
+                            <input type="text" class="form-control" name="employee_no" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>部门</label>
+                            <input type="text" class="form-control" name="department" required>
+                        </div>
+                        <div class="form-group">
+                            <label>职位</label>
+                            <input type="text" class="form-control" name="position" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>邮箱</label>
+                            <input type="email" class="form-control" name="email" required>
+                        </div>
+                        <div class="form-group">
+                            <label>手机号</label>
+                            <input type="tel" class="form-control" name="phone" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>入职日期</label>
+                            <input type="date" class="form-control" name="join_date">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary">添加员工</button>
+                </form>
+            </div>
+
+            <div class="loading" id="employeesLoading">
+                <div class="spinner"></div>
+                <p>加载中...</p>
+            </div>
+
+            <table class="table" id="employeesTable">
+                <thead>
+                    <tr>
+                        <th>姓名</th>
+                        <th>员工编号</th>
+                        <th>部门</th>
+                        <th>职位</th>
+                        <th>邮箱</th>
+                        <th>入职日期</th>
+                        <th>状态</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+
+        <!-- 工资条管理 -->
+        <div id="payrolls" class="tab-content">
+            <h2>工资条管理</h2>
+
+            <div class="card">
+                <h3>创建工资条</h3>
+                <form id="payrollForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>员工</label>
+                            <select class="form-control" name="employee_id" required>
+                                <option value="">选择员工</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>工资期间</label>
+                            <input type="month" class="form-control" name="period" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>工资模板</label>
+                            <select class="form-control" name="template_id" required onchange="updatePayrollFields(this.value)">
+                                <option value="">选择模板</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <h4>工资明细</h4>
+                    <div id="payrollFields">
+                        <!-- 工资字段将根据选择的模板动态生成 -->
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>基本工资</label>
+                                <input type="number" class="form-control" name="basic_salary" step="0.01" required>
+                            </div>
+                            <div class="form-group">
+                                <label>绩效奖金</label>
+                                <input type="number" class="form-control" name="performance" step="0.01" value="0">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>餐补</label>
+                                <input type="number" class="form-control" name="meal_allowance" step="0.01" value="0">
+                            </div>
+                            <div class="form-group">
+                                <label>交通补贴</label>
+                                <input type="number" class="form-control" name="transport" step="0.01" value="0">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>个人所得税</label>
+                                <input type="number" class="form-control" name="tax" step="0.01" value="0">
+                            </div>
+                            <div class="form-group">
+                                <label>社保</label>
+                                <input type="number" class="form-control" name="social_insurance" step="0.01" value="0">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <h4>工作天数设置（用于新员工或离职员工）</h4>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>
+                                <input type="checkbox" id="isProrated" name="is_prorated" onchange="toggleWorkDays()">
+                                按实际工作天数计算
+                            </label>
+                        </div>
+                    </div>
+                    <div class="form-row" id="workDaysRow" style="display: none;">
+                        <div class="form-group">
+                            <label>实际工作天数</label>
+                            <input type="number" class="form-control" name="work_days" step="0.5" min="0" max="31" value="0">
+                            <small class="form-text text-muted">例：15号入职，实际工作16天</small>
+                        </div>
+                        <div class="form-group">
+                            <label>当月总天数</label>
+                            <input type="number" class="form-control" name="month_days" step="1" min="28" max="31" value="30">
+                            <small class="form-text text-muted">当月共有多少天</small>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary">创建工资条</button>
+                </form>
+            </div>
+
+            <div class="form-group">
+                <label>筛选条件</label>
+                <div class="form-row">
+                    <select class="form-control" id="statusFilter">
+                        <option value="">所有状态</option>
+                        <option value="draft">草稿</option>
+                        <option value="published">已发布</option>
+                        <option value="signed">已签名</option>
+                    </select>
+                    <input type="month" class="form-control" id="periodFilter" placeholder="工资期间">
+                    <button class="btn btn-secondary" onclick="loadPayrolls()">筛选</button>
+                </div>
+            </div>
+
+            <table class="table" id="payrollsTable">
+                <thead>
+                    <tr>
+                        <th><input type="checkbox" id="selectAll"></th>
+                        <th>员工</th>
+                        <th>期间</th>
+                        <th>应发工资</th>
+                        <th>实发工资</th>
+                        <th>状态</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+
+        <!-- 模板管理 -->
+        <div id="templates" class="tab-content">
+            <h2>工资模板管理</h2>
+            
+            <div class="card">
+                <h3>创建新模板</h3>
+                <form id="templateForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>模板名称</label>
+                            <input type="text" class="form-control" name="name" required>
+                        </div>
+                        <div class="form-group">
+                            <label>模板描述</label>
+                            <input type="text" class="form-control" name="description" required>
+                        </div>
+                    </div>
+                    
+                    <h4>工资项目设置</h4>
+                    <div id="templateFields">
+                        <div class="field-group">
+                            <h5>收入项</h5>
+                            <div class="form-row">
+                                <label><input type="checkbox" name="basic_salary" checked> 基本工资</label>
+                                <label><input type="checkbox" name="performance" checked> 绩效奖金</label>
+                                <label><input type="checkbox" name="meal_allowance" checked> 餐补</label>
+                                <label><input type="checkbox" name="transport" checked> 交通补贴</label>
+                                <label><input type="checkbox" name="housing" > 住房补贴</label>
+                                <label><input type="checkbox" name="communication"> 通讯补贴</label>
+                                <label><input type="checkbox" name="overtime"> 加班费</label>
+                                <label><input type="checkbox" name="bonus"> 其他奖金</label>
+                            </div>
+                        </div>
+                        <div class="field-group">
+                            <h5>扣除项</h5>
+                            <div class="form-row">
+                                <label><input type="checkbox" name="tax" checked> 个人所得税</label>
+                                <label><input type="checkbox" name="social_insurance" checked> 社保</label>
+                                <label><input type="checkbox" name="housing_fund"> 公积金</label>
+                                <label><input type="checkbox" name="late_deduction"> 迟到扣款</label>
+                                <label><input type="checkbox" name="absence_deduction"> 缺勤扣款</label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary">创建模板</button>
+                </form>
+            </div>
+            
+            <div class="card">
+                <h3>现有模板</h3>
+                <table class="table" id="templatesTable">
+                    <thead>
+                        <tr>
+                            <th>模板名称</th>
+                            <th>描述</th>
+                            <th>包含字段</th>
+                            <th>状态</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 批量发布 -->
+        <div id="publish" class="tab-content">
+            <h2>批量发布工资条</h2>
+            <div class="card">
+                <h3>发布设置</h3>
+                <div class="form-group">
+                    <label>
+                        <input type="checkbox" id="notifyEmployees" checked>
+                        发布后自动通知员工
+                    </label>
+                </div>
+                <div class="form-group">
+                    <button class="btn btn-success" onclick="publishSelectedPayrolls()">发布选中的工资条</button>
+                    <span id="selectedCount">未选择任何工资条</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 通知记录 -->
+        <div id="notifications" class="tab-content">
+            <h2>通知记录</h2>
+            <table class="table" id="notificationsTable">
+                <thead>
+                    <tr>
+                        <th>员工</th>
+                        <th>类型</th>
+                        <th>接收者</th>
+                        <th>状态</th>
+                        <th>发送时间</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- 提示信息 -->
+    <div id="alertContainer"></div>
+
+    <script src="api-client.js"></script>
+    <script>
+        // 初始化API客户端
+        const api = new PayrollAPI();
+        const manager = new PayrollManager();
+        let templatesData = []; // 存储模板数据
+
+        // 当前选中的工资条
+        let selectedPayrolls = new Set();
+
+        // 鉴权检查
+        function checkAuth() {
+            const token = localStorage.getItem('adminToken');
+            if (!token) {
+                redirectToLogin();
+                return false;
+            }
+
+            // 检查token是否过期
+            const expiry = localStorage.getItem('tokenExpiry');
+            if (expiry && Date.now() > parseInt(expiry)) {
+                localStorage.removeItem('adminToken');
+                localStorage.removeItem('tokenExpiry');
+                redirectToLogin();
+                return false;
+            }
+
+            // 验证token有效性
+            fetch('/api/v1/auth/verify', {
+                method: 'POST',
+                headers: {
+                    'Authorization': 'Bearer ' + token
+                }
+            }).then(response => {
+                if (response.ok) {
+                    return response.json();
+                } else {
+                    throw new Error('Token验证失败');
+                }
+            }).then(data => {
+                // 显示当前用户
+                document.getElementById('currentUser').textContent = `欢迎，${data.username}`;
+            }).catch(error => {
+                console.error('Token验证失败:', error);
+                localStorage.removeItem('adminToken');
+                localStorage.removeItem('tokenExpiry');
+                redirectToLogin();
+            });
+
+            return true;
+        }
+
+        function redirectToLogin() {
+            const currentUrl = window.location.href;
+            window.location.href = '/web/login.html?redirect=' + encodeURIComponent(currentUrl);
+        }
+
+        // API客户端已经自动处理认证头，这个函数不再需要
+        function addAuthToAPI() {
+            // API客户端的getAuthHeaders()方法会自动处理认证头
+            console.log('API认证已自动配置');
+        }
+
+        // 登出功能
+        function logout() {
+            if (confirm('确定要退出登录吗？')) {
+                localStorage.removeItem('adminToken');
+                localStorage.removeItem('tokenExpiry');
+                window.location.href = '/web/login.html';
+            }
+        }
+
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', function () {
+            // 先进行鉴权检查
+            if (!checkAuth()) {
+                return;
+            }
+            
+            // 添加API认证
+            addAuthToAPI();
+            
+            // 加载页面数据
+            loadEmployees();
+            loadPayrolls();
+            loadTemplates();
+            loadNotifications();
+            setupEventListeners();
+        });
+
+        // 设置事件监听器
+        function setupEventListeners() {
+            // 员工表单提交
+            const employeeForm = document.getElementById('employeeForm');
+            if (employeeForm) {
+                employeeForm.addEventListener('submit', handleEmployeeSubmit);
+            }
+
+            // 工资条表单提交
+            const payrollForm = document.getElementById('payrollForm');
+            if (payrollForm) {
+                payrollForm.addEventListener('submit', handlePayrollSubmit);
+            }
+
+            // 全选复选框
+            const selectAll = document.getElementById('selectAll');
+            if (selectAll) {
+                selectAll.addEventListener('change', handleSelectAll);
+            }
+            
+            // 模板表单提交
+            const templateForm = document.getElementById('templateForm');
+            if (templateForm) {
+                templateForm.addEventListener('submit', handleTemplateSubmit);
+            }
+        }
+
+        // 标签页切换 - 全局函数，供onclick使用
+        function switchTab(tabName, event) {
+            // 隐藏所有标签内容
+            const contents = document.querySelectorAll('.tab-content');
+            contents.forEach(content => content.classList.remove('active'));
+
+            // 移除所有按钮的活跃状态
+            const buttons = document.querySelectorAll('.tab-button');
+            buttons.forEach(button => button.classList.remove('active'));
+
+            // 显示选中的标签内容
+            document.getElementById(tabName).classList.add('active');
+            if (event && event.target) {
+                event.target.classList.add('active');
+            }
+
+            // 根据标签加载相应数据
+            switch (tabName) {
+                case 'employees':
+                    loadEmployees();
+                    break;
+                case 'payrolls':
+                    loadPayrolls();
+                    break;
+                case 'templates':
+                    loadTemplates();
+                    break;
+                case 'notifications':
+                    loadNotifications();
+                    break;
+            }
+        }
+
+        // 切换工作天数显示
+        function toggleWorkDays() {
+            const isProrated = document.getElementById('isProrated').checked;
+            const workDaysRow = document.getElementById('workDaysRow');
+            if (isProrated) {
+                workDaysRow.style.display = 'flex';
+            } else {
+                workDaysRow.style.display = 'none';
+            }
+        }
+
+        // 显示提示信息
+        function showAlert(message, type = 'success') {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type}`;
+            alertDiv.textContent = message;
+            alertDiv.style.position = 'fixed';
+            alertDiv.style.top = '20px';
+            alertDiv.style.right = '20px';
+            alertDiv.style.zIndex = '9999';
+            alertDiv.style.maxWidth = '400px';
+
+            document.body.appendChild(alertDiv);
+
+            setTimeout(() => {
+                document.body.removeChild(alertDiv);
+            }, 3000);
+        }
+
+        // 加载员工列表
+        async function loadEmployees() {
+            const loading = document.getElementById('employeesLoading');
+            const table = document.getElementById('employeesTable');
+
+            try {
+                loading.style.display = 'block';
+                const response = await api.getEmployees();
+                const employees = response.data;
+
+                const tbody = table.querySelector('tbody');
+                tbody.innerHTML = '';
+
+                employees.forEach(employee => {
+                    const row = tbody.insertRow();
+                    const statusBadge = employee.status === 'active' ? 
+                        '<span class="status-badge status-active">在职</span>' : 
+                        '<span class="status-badge status-inactive">离职</span>';
+                    row.innerHTML = `
+                        <td>${employee.name}</td>
+                        <td>${employee.employee_no}</td>
+                        <td>${employee.department}</td>
+                        <td>${employee.position}</td>
+                        <td>${employee.email}</td>
+                        <td>${employee.join_date ? new Date(employee.join_date).toLocaleDateString('zh-CN') : '-'}</td>
+                        <td>${statusBadge}</td>
+                        <td>
+                            <button class="btn btn-secondary" onclick="editEmployee(${employee.id})">编辑</button>
+                            <button class="btn btn-danger" onclick="deleteEmployee(${employee.id})">删除</button>
+                        </td>
+                    `;
+                });
+
+                // 更新工资条表单的员工选择
+                updateEmployeeSelect(employees);
+
+            } catch (error) {
+                showAlert('加载员工列表失败: ' + error.message, 'error');
+            } finally {
+                loading.style.display = 'none';
+            }
+        }
+
+        // 更新员工选择下拉框
+        function updateEmployeeSelect(employees) {
+            const select = document.querySelector('select[name="employee_id"]');
+            select.innerHTML = '<option value="">选择员工</option>';
+
+            employees.forEach(employee => {
+                const option = document.createElement('option');
+                option.value = employee.id;
+                option.textContent = `${employee.name} (${employee.employee_no})`;
+                select.appendChild(option);
+            });
+        }
+
+        // 处理员工表单提交
+        async function handleEmployeeSubmit(event) {
+            event.preventDefault();
+
+            const formData = new FormData(event.target);
+            const employeeData = Object.fromEntries(formData);
+
+            try {
+                await api.createEmployee(employeeData);
+                showAlert('员工创建成功!');
+                event.target.reset();
+                loadEmployees();
+            } catch (error) {
+                showAlert('创建员工失败: ' + error.message, 'error');
+            }
+        }
+
+        // 加载工资条列表
+        async function loadPayrolls() {
+            try {
+                const filters = {
+                    status: document.getElementById('statusFilter')?.value || '',
+                    period: document.getElementById('periodFilter')?.value || ''
+                };
+
+                // 移除空值
+                Object.keys(filters).forEach(key => {
+                    if (!filters[key]) delete filters[key];
+                });
+
+                const response = await api.getPayrolls(filters);
+                const payrolls = response.data;
+
+                const tbody = document.querySelector('#payrollsTable tbody');
+                tbody.innerHTML = '';
+
+                payrolls.forEach(payroll => {
+                    const row = tbody.insertRow();
+                    row.innerHTML = `
+                        <td><input type="checkbox" value="${payroll.id}" onchange="updateSelection(this)"></td>
+                        <td>${payroll.employee?.name || 'N/A'}</td>
+                        <td>${payroll.period}</td>
+                        <td>¥${(payroll.total_gross || 0).toFixed(2)}${payroll.is_prorated ? `<br><small>(实际${payroll.work_days}/${payroll.month_days}天)</small>` : ''}</td>
+                        <td>¥${(payroll.total_net || 0).toFixed(2)}</td>
+                        <td><span class="status-badge status-${payroll.status}">${getStatusText(payroll.status)}</span></td>
+                        <td>
+                            <button class="btn btn-secondary" onclick="viewPayroll('${payroll.id}')">查看</button>
+                            ${payroll.status === 'draft' ? `
+                                <button class="btn btn-success" onclick="quickPublishPayroll('${payroll.id}')">发布</button>
+                                <button class="btn btn-danger" onclick="deletePayroll('${payroll.id}')">删除</button>
+                            ` : ''}
+                        </td>
+                    `;
+                });
+
+                updateSelectedCount();
+
+            } catch (error) {
+                showAlert('加载工资条列表失败: ' + error.message, 'error');
+            }
+        }
+
+        // 获取状态文本
+        function getStatusText(status) {
+            const statusMap = {
+                'draft': '草稿',
+                'published': '已发布',
+                'signed': '已签名'
+            };
+            return statusMap[status] || status;
+        }
+
+        // 加载模板列表
+        async function loadTemplates() {
+            try {
+                const response = await api.getTemplates();
+                const templates = response.data;
+                
+                // 存储模板数据以供后续使用
+                templatesData = templates;
+
+                const tbody = document.querySelector('#templatesTable tbody');
+                if (!tbody) return;
+                
+                tbody.innerHTML = '';
+
+                templates.forEach(template => {
+                    const fields = JSON.parse(template.fields || '{}');
+                    const fieldNames = Object.keys(fields).map(key => fields[key].name).join(', ');
+                    
+                    const row = tbody.insertRow();
+                    row.innerHTML = `
+                        <td>${template.name}</td>
+                        <td>${template.description}</td>
+                        <td>${fieldNames}</td>
+                        <td>${template.is_active ? '启用' : '禁用'}</td>
+                        <td>
+                            <button class="btn btn-secondary" onclick="editTemplate(${template.id})">编辑</button>
+                            <button class="btn btn-danger" onclick="deleteTemplate(${template.id})">删除</button>
+                        </td>
+                    `;
+                });
+                
+                // 更新工资条表单中的模板选择
+                updateTemplateSelect(templates);
+
+            } catch (error) {
+                console.error('加载模板失败:', error);
+            }
+        }
+
+        // 更新模板选择下拉框
+        function updateTemplateSelect(templates) {
+            const select = document.querySelector('select[name="template_id"]');
+            if (!select) return;
+            
+            select.innerHTML = '<option value="">选择模板</option>';
+            templates.forEach(template => {
+                if (template.is_active) {
+                    const option = document.createElement('option');
+                    option.value = template.id;
+                    option.textContent = template.name;
+                    select.appendChild(option);
+                }
+            });
+        }
+        
+        // 根据选择的模板更新工资字段
+        function updatePayrollFields(templateId) {
+            const payrollFieldsDiv = document.getElementById('payrollFields');
+            if (!templateId) {
+                // 如果没有选择模板，显示默认字段
+                payrollFieldsDiv.innerHTML = `
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>基本工资</label>
+                            <input type="number" class="form-control" name="basic_salary" step="0.01" required>
+                        </div>
+                        <div class="form-group">
+                            <label>绩效奖金</label>
+                            <input type="number" class="form-control" name="performance" step="0.01" value="0">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>餐补</label>
+                            <input type="number" class="form-control" name="meal_allowance" step="0.01" value="0">
+                        </div>
+                        <div class="form-group">
+                            <label>交通补贴</label>
+                            <input type="number" class="form-control" name="transport" step="0.01" value="0">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>个人所得税</label>
+                            <input type="number" class="form-control" name="tax" step="0.01" value="0">
+                        </div>
+                        <div class="form-group">
+                            <label>社保</label>
+                            <input type="number" class="form-control" name="social_insurance" step="0.01" value="0">
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+            
+            // 查找选择的模板
+            const template = templatesData.find(t => t.id == templateId);
+            if (!template) return;
+            
+            const fields = JSON.parse(template.fields || '{}');
+            let html = '';
+            let fieldCount = 0;
+            
+            // 生成表单字段
+            Object.keys(fields).forEach((fieldKey, index) => {
+                const field = fields[fieldKey];
+                
+                // 每两个字段一行
+                if (fieldCount % 2 === 0) {
+                    html += '<div class="form-row">';
+                }
+                
+                const required = field.required || fieldKey === 'basic_salary' ? 'required' : '';
+                const value = fieldKey === 'basic_salary' ? '' : 'value="0"';
+                
+                html += `
+                    <div class="form-group">
+                        <label>${field.name}</label>
+                        <input type="number" class="form-control" name="${fieldKey}" step="0.01" ${value} ${required}>
+                    </div>
+                `;
+                
+                fieldCount++;
+                
+                // 每两个字段结束一行，或者是最后一个字段
+                if (fieldCount % 2 === 0 || index === Object.keys(fields).length - 1) {
+                    html += '</div>';
+                }
+            });
+            
+            payrollFieldsDiv.innerHTML = html;
+        }
+
+        // 处理模板表单提交
+        async function handleTemplateSubmit(event) {
+            event.preventDefault();
+
+            const formData = new FormData(event.target);
+            
+            // 收集选中的字段
+            const fields = {};
+            const fieldCheckboxes = document.querySelectorAll('#templateFields input[type="checkbox"]');
+            fieldCheckboxes.forEach(checkbox => {
+                if (checkbox.checked) {
+                    const fieldKey = checkbox.name;
+                    const fieldName = checkbox.parentElement.textContent.trim();
+                    fields[fieldKey] = {
+                        name: fieldName,
+                        type: 'number',
+                        required: fieldKey === 'basic_salary'
+                    };
+                }
+            });
+
+            const templateData = {
+                name: formData.get('name'),
+                description: formData.get('description'),
+                fields: JSON.stringify(fields),
+                is_active: true
+            };
+
+            try {
+                await api.createTemplate(templateData);
+                showAlert('模板创建成功!');
+                event.target.reset();
+                loadTemplates();
+            } catch (error) {
+                showAlert('创建模板失败: ' + error.message, 'error');
+            }
+        }
+
+        // 删除模板
+        async function deleteTemplate(templateId) {
+            if (!confirm('确定要删除这个模板吗？如果有工资条使用此模板，将只会禁用而不删除。')) {
+                return;
+            }
+
+            try {
+                const result = await api.deleteTemplate(templateId);
+                showAlert(result.message || '模板删除成功');
+                loadTemplates();
+            } catch (error) {
+                showAlert('删除模板失败: ' + error.message, 'error');
+            }
+        }
+
+        // 编辑模板
+        async function editTemplate(templateId) {
+            const template = templatesData.find(t => t.id == templateId);
+            if (!template) {
+                showAlert('模板未找到', 'error');
+                return;
+            }
+            
+            const fields = JSON.parse(template.fields || '{}');
+            const fieldCheckboxes = Object.keys(fields).map(key => 
+                `<label><input type="checkbox" name="${key}" checked> ${fields[key].name}</label>`
+            ).join('');
+            
+            // 创建编辑表单HTML
+            const formHTML = `
+                <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 9999;">
+                    <div style="position: relative; background: white; margin: 50px auto; padding: 20px; max-width: 600px; border-radius: 10px;">
+                        <h3>编辑模板</h3>
+                        <form id="editTemplateForm">
+                            <div class="form-group">
+                                <label>模板名称</label>
+                                <input type="text" class="form-control" name="name" value="${template.name}" required>
+                            </div>
+                            <div class="form-group">
+                                <label>模板描述</label>
+                                <input type="text" class="form-control" name="description" value="${template.description}" required>
+                            </div>
+                            <div class="form-group">
+                                <label>工资项目</label>
+                                <div id="editTemplateFields">
+                                    ${fieldCheckboxes}
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>
+                                    <input type="checkbox" name="is_active" ${template.is_active ? 'checked' : ''}>
+                                    启用此模板
+                                </label>
+                            </div>
+                            <button type="submit" class="btn btn-primary">保存</button>
+                            <button type="button" class="btn btn-secondary" onclick="closeEditModal()">取消</button>
+                        </form>
+                    </div>
+                </div>
+            `;
+            
+            // 添加模态框到页面
+            const modal = document.createElement('div');
+            modal.id = 'editTemplateModal';
+            modal.innerHTML = formHTML;
+            document.body.appendChild(modal);
+            
+            // 处理表单提交
+            document.getElementById('editTemplateForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                const formData = new FormData(e.target);
+                
+                // 收集选中的字段
+                const updatedFields = {};
+                const fieldCheckboxes = document.querySelectorAll('#editTemplateFields input[type="checkbox"]');
+                fieldCheckboxes.forEach(checkbox => {
+                    if (checkbox.checked) {
+                        const fieldKey = checkbox.name;
+                        updatedFields[fieldKey] = fields[fieldKey] || {
+                            name: checkbox.parentElement.textContent.trim(),
+                            type: 'number'
+                        };
+                    }
+                });
+                
+                const templateData = {
+                    name: formData.get('name'),
+                    description: formData.get('description'),
+                    fields: JSON.stringify(updatedFields),
+                    is_active: formData.get('is_active') === 'on'
+                };
+                
+                try {
+                    await api.updateTemplate(templateId, templateData);
+                    showAlert('模板更新成功');
+                    closeEditModal();
+                    loadTemplates();
+                } catch (error) {
+                    showAlert('更新模板失败: ' + error.message, 'error');
+                }
+            });
+        }
+        
+        // 关闭编辑模态框
+        function closeEditModal() {
+            const modal = document.getElementById('editTemplateModal');
+            if (modal) {
+                modal.remove();
+            }
+        }
+
+        // 处理工资条表单提交
+        async function handlePayrollSubmit(event) {
+            event.preventDefault();
+
+            const formData = new FormData(event.target);
+            const data = Object.fromEntries(formData);
+
+            // 构建工资条数据 - 动态收集所有工资字段
+            const payrollDataFields = {};
+            
+            // 收集所有带有 data-field 属性的输入框
+            const fieldInputs = document.querySelectorAll('#payrollFields input[type="number"]');
+            fieldInputs.forEach(input => {
+                const fieldName = input.name;
+                if (fieldName && fieldName !== 'work_days' && fieldName !== 'month_days') {
+                    payrollDataFields[fieldName] = parseFloat(input.value) || 0;
+                }
+            });
+
+            const payrollData = {
+                employee_id: parseInt(data.employee_id),
+                period: data.period,
+                template_id: parseInt(data.template_id) || 1,
+                is_prorated: data.is_prorated === 'on',
+                work_days: parseFloat(data.work_days) || 0,
+                month_days: parseFloat(data.month_days) || 30,
+                payroll_data: payrollDataFields
+            };
+
+            try {
+                await api.createPayroll(payrollData);
+                showAlert('工资条创建成功!');
+                event.target.reset();
+                loadPayrolls();
+            } catch (error) {
+                showAlert('创建工资条失败: ' + error.message, 'error');
+            }
+        }
+
+        // 更新选择状态
+        function updateSelection(checkbox) {
+            const payrollId = parseInt(checkbox.value);
+            if (checkbox.checked) {
+                selectedPayrolls.add(payrollId);
+            } else {
+                selectedPayrolls.delete(payrollId);
+            }
+            updateSelectedCount();
+        }
+
+        // 全选/取消全选
+        function handleSelectAll(event) {
+            const checkboxes = document.querySelectorAll('#payrollsTable input[type="checkbox"]:not(#selectAll)');
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = event.target.checked;
+                updateSelection(checkbox);
+            });
+        }
+
+        // 更新选中数量显示
+        function updateSelectedCount() {
+            const count = selectedPayrolls.size;
+            const text = count > 0 ? `已选择 ${count} 个工资条` : '未选择任何工资条';
+            document.getElementById('selectedCount').textContent = text;
+        }
+
+        // 批量发布工资条
+        async function publishSelectedPayrolls() {
+            if (selectedPayrolls.size === 0) {
+                showAlert('请先选择要发布的工资条', 'error');
+                return;
+            }
+
+            const notifyEmployees = document.getElementById('notifyEmployees').checked;
+
+            try {
+                const payrollIds = Array.from(selectedPayrolls);
+                await api.publishPayrolls(payrollIds, notifyEmployees);
+                showAlert(`成功发布 ${payrollIds.length} 个工资条!`);
+                selectedPayrolls.clear();
+                loadPayrolls();
+                loadNotifications();
+            } catch (error) {
+                showAlert('发布工资条失败: ' + error.message, 'error');
+            }
+        }
+
+        // 删除工资条
+        async function deletePayroll(payrollId) {
+            if (!confirm('确定要删除这个工资条吗？此操作不可恢复。')) {
+                return;
+            }
+
+            try {
+                await api.deletePayroll(payrollId);
+                showAlert('工资条删除成功!');
+                loadPayrolls();
+            } catch (error) {
+                showAlert('删除工资条失败: ' + error.message, 'error');
+            }
+        }
+
+        // 快速发布单个工资条
+        async function quickPublishPayroll(payrollId) {
+            if (!confirm('确定要发布这个工资条吗？发布后员工将可以查看并签名。')) {
+                return;
+            }
+
+            try {
+                await api.publishPayrolls([payrollId], false);
+                showAlert('工资条发布成功！员工现在可以查看并签名了。');
+                loadPayrolls();
+            } catch (error) {
+                showAlert('发布工资条失败: ' + error.message, 'error');
+            }
+        }
+
+        // 查看工资条详情
+        function viewPayroll(payrollId) {
+            // 打开员工查看页面
+            window.open(`employee.html?payroll=${payrollId}`, '_blank');
+        }
+
+        // 查看员工详情
+        function viewEmployee(employeeId) {
+            // 打开员工工资条历史页面
+            window.open(`employee.html?employee=${employeeId}`, '_blank');
+        }
+        
+        // 编辑员工
+        async function editEmployee(employeeId) {
+            try {
+                const response = await api.getEmployee(employeeId);
+                const employee = response.data;
+                
+                // 创建编辑表单HTML
+                const formHTML = `
+                    <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 9999;">
+                        <div style="position: relative; background: white; margin: 50px auto; padding: 20px; max-width: 600px; border-radius: 10px;">
+                            <h3>编辑员工信息</h3>
+                            <form id="editEmployeeForm">
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label>姓名</label>
+                                        <input type="text" class="form-control" name="name" value="${employee.name}" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>员工编号</label>
+                                        <input type="text" class="form-control" value="${employee.employee_no}" disabled>
+                                    </div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label>部门</label>
+                                        <input type="text" class="form-control" name="department" value="${employee.department}" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>职位</label>
+                                        <input type="text" class="form-control" name="position" value="${employee.position}" required>
+                                    </div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label>邮箱</label>
+                                        <input type="email" class="form-control" name="email" value="${employee.email}" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>手机号</label>
+                                        <input type="tel" class="form-control" name="phone" value="${employee.phone}" required>
+                                    </div>
+                                </div>
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label>入职日期</label>
+                                        <input type="date" class="form-control" name="join_date" value="${employee.join_date ? employee.join_date.split('T')[0] : ''}">
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn btn-primary">保存</button>
+                                <button type="button" class="btn btn-secondary" onclick="closeEditEmployeeModal()">取消</button>
+                            </form>
+                        </div>
+                    </div>
+                `;
+                
+                // 添加模态框到页面
+                const modal = document.createElement('div');
+                modal.id = 'editEmployeeModal';
+                modal.innerHTML = formHTML;
+                document.body.appendChild(modal);
+                
+                // 处理表单提交
+                document.getElementById('editEmployeeForm').addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    
+                    const formData = new FormData(e.target);
+                    const employeeData = {
+                        name: formData.get('name'),
+                        employee_no: employee.employee_no, // 保持员工编号不变
+                        department: formData.get('department'),
+                        position: formData.get('position'),
+                        email: formData.get('email'),
+                        phone: formData.get('phone'),
+                        join_date: formData.get('join_date')
+                    };
+                    
+                    try {
+                        await api.updateEmployee(employeeId, employeeData);
+                        showAlert('员工信息更新成功');
+                        closeEditEmployeeModal();
+                        loadEmployees();
+                    } catch (error) {
+                        showAlert('更新员工信息失败: ' + error.message, 'error');
+                    }
+                });
+            } catch (error) {
+                showAlert('获取员工信息失败: ' + error.message, 'error');
+            }
+        }
+        
+        // 关闭编辑员工模态框
+        function closeEditEmployeeModal() {
+            const modal = document.getElementById('editEmployeeModal');
+            if (modal) {
+                modal.remove();
+            }
+        }
+        
+        // 删除员工
+        async function deleteEmployee(employeeId) {
+            const confirmMsg = `确定要删除这个员工吗？
+            
+注意：
+- 如果员工有工资记录，将标记为离职状态（软删除）
+- 如果员工没有任何记录，将完全删除
+            
+是否继续？`;
+            
+            if (!confirm(confirmMsg)) {
+                return;
+            }
+            
+            try {
+                const result = await api.deleteEmployee(employeeId);
+                showAlert(result.message || '操作成功');
+                loadEmployees();
+            } catch (error) {
+                showAlert('删除员工失败: ' + error.message, 'error');
+            }
+        }
+
+        // 加载通知记录
+        async function loadNotifications() {
+            try {
+                const response = await api.getNotifications();
+                const notifications = response.data;
+
+                const tbody = document.querySelector('#notificationsTable tbody');
+                tbody.innerHTML = '';
+
+                notifications.forEach(notification => {
+                    const row = tbody.insertRow();
+                    row.innerHTML = `
+                        <td>${notification.payroll?.employee?.name || 'N/A'}</td>
+                        <td>${notification.type}</td>
+                        <td>${notification.recipient}</td>
+                        <td><span class="status-badge status-${notification.status}">${notification.status}</span></td>
+                        <td>${notification.sent_at ? new Date(notification.sent_at).toLocaleString() : 'N/A'}</td>
+                        <td>
+                            ${notification.status === 'failed' ? `<button class="btn btn-secondary" onclick="resendNotification(${notification.id})">重发</button>` : ''}
+                        </td>
+                    `;
+                });
+
+            } catch (error) {
+                showAlert('加载通知记录失败: ' + error.message, 'error');
+            }
+        }
+
+        // 重发通知
+        async function resendNotification(notificationId) {
+            try {
+                await api.resendNotification(notificationId);
+                showAlert('通知重发成功!');
+                loadNotifications();
+            } catch (error) {
+                showAlert('重发通知失败: ' + error.message, 'error');
+            }
+        }
+    </script>
+</body>
+
+</html>
