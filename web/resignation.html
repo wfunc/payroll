@@ -1,0 +1,1770 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>离职管理系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .tab-button {
+            padding: 10px 20px;
+            background: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        
+        .tab-button.active {
+            background: #667eea;
+            color: white;
+        }
+        
+        .tab-content {
+            display: none;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+            font-weight: 500;
+        }
+        
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        
+        .btn-success {
+            background: #48bb78;
+            color: white;
+        }
+        
+        .btn-danger {
+            background: #f56565;
+            color: white;
+        }
+        
+        .btn-warning {
+            background: #ed8936;
+            color: white;
+        }
+        
+        .btn-info {
+            background: #4299e1;
+            color: white;
+        }
+        
+        .btn-secondary {
+            background: #718096;
+            color: white;
+        }
+        
+        .btn-lg {
+            padding: 15px 30px;
+            font-size: 16px;
+        }
+        
+        .btn:hover {
+            opacity: 0.9;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        th {
+            background: #f7fafc;
+            font-weight: 600;
+        }
+        
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .status-draft {
+            background: #e2e8f0;
+            color: #718096;
+        }
+        
+        .status-submitted {
+            background: #bee3f8;
+            color: #2c5282;
+        }
+        
+        .status-approved {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+        
+        .status-rejected {
+            background: #fed7d7;
+            color: #742a2a;
+        }
+        
+        .status-completed {
+            background: #d6f5d6;
+            color: #1a472a;
+        }
+        
+        .status-warning {
+            background: #feebc8;
+            color: #7c2d12;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+        }
+        
+        .modal-content {
+            position: relative;
+            background: white;
+            margin: 50px auto;
+            padding: 20px;
+            width: 90%;
+            max-width: 800px;
+            border-radius: 10px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .modal-close {
+            font-size: 24px;
+            cursor: pointer;
+            color: #999;
+        }
+        
+        .signature-container {
+            margin: 20px 0;
+        }
+        
+        .signature-pad {
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            cursor: crosshair;
+            background: white;
+        }
+        
+        .signature-controls {
+            margin-top: 10px;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .report-preview {
+            border: 1px solid #ddd;
+            padding: 20px;
+            border-radius: 5px;
+            background: #f9f9f9;
+            margin: 20px 0;
+        }
+        
+        .alert {
+            padding: 12px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        
+        .alert-success {
+            background: #c6f6d5;
+            color: #22543d;
+            border: 1px solid #9ae6b4;
+        }
+        
+        .alert-error {
+            background: #fed7d7;
+            color: #742a2a;
+            border: 1px solid #fc8181;
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>离职管理系统</h1>
+            <p>管理员工离职申请、生成离职报告和电子签名</p>
+        </div>
+        
+        <div class="tabs">
+            <button class="tab-button active" onclick="showTab('applications', event)">离职申请</button>
+            <button class="tab-button" onclick="showTab('create', event)">创建申请</button>
+            <button class="tab-button" onclick="showTab('reports', event)">离职报告</button>
+            <button class="tab-button" onclick="showTab('signatures', event)">电子签名</button>
+        </div>
+        
+        <!-- 离职申请列表 -->
+        <div id="applications" class="tab-content active">
+            <h2>离职申请列表</h2>
+            <div class="form-group">
+                <select id="statusFilter" onchange="loadApplications()">
+                    <option value="">全部状态</option>
+                    <option value="draft">草稿</option>
+                    <option value="submitted">已提交</option>
+                    <option value="approved">已批准</option>
+                    <option value="rejected">已驳回</option>
+                    <option value="completed">已完成</option>
+                </select>
+            </div>
+            <table id="applicationsTable">
+                <thead>
+                    <tr>
+                        <th>员工姓名</th>
+                        <th>部门</th>
+                        <th>离职类型</th>
+                        <th>申请日期</th>
+                        <th>最后工作日</th>
+                        <th>状态</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody id="applicationsList">
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- 创建离职申请 -->
+        <div id="create" class="tab-content">
+            <h2>创建离职申请</h2>
+            <form id="createForm">
+                <div class="form-group">
+                    <label>选择员工</label>
+                    <select id="employeeSelect" required>
+                        <option value="">请选择员工</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>离职类型</label>
+                    <select id="resignationType" required>
+                        <option value="voluntary">主动离职</option>
+                        <option value="dismissal">辞退</option>
+                        <option value="contract_expiry">合同到期</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>申请日期</label>
+                    <input type="date" id="resignationDate" required>
+                </div>
+                <div class="form-group">
+                    <label>最后工作日</label>
+                    <input type="date" id="lastWorkingDate" required>
+                </div>
+                <div class="form-group">
+                    <label>离职原因</label>
+                    <textarea id="reason" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label>工作交接说明</label>
+                    <textarea id="handoverNotes"></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary">创建申请</button>
+            </form>
+        </div>
+        
+        <!-- 离职报告 -->
+        <div id="reports" class="tab-content">
+            <h2>离职报告管理</h2>
+            <div style="margin-bottom: 20px;">
+                <button class="btn btn-primary" onclick="window.open('/web/view-resignation-report.html', '_blank')">
+                    📋 打开报告查看器
+                </button>
+            </div>
+            <div id="reportsList"></div>
+        </div>
+        
+        <!-- 电子签名 -->
+        <div id="signatures" class="tab-content">
+            <h2>电子签名管理</h2>
+            <div class="form-group">
+                <label>选择离职申请</label>
+                <select id="signatureApplicationSelect" onchange="loadSignatures()">
+                    <option value="">请选择申请</option>
+                </select>
+            </div>
+            <div id="signaturesList"></div>
+        </div>
+    </div>
+    
+    <!-- 模态框 -->
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="modalTitle">标题</h3>
+                <span class="modal-close" onclick="closeModal()">&times;</span>
+            </div>
+            <div id="modalBody"></div>
+        </div>
+    </div>
+    
+    <script src="api-client.js"></script>
+    <script>
+        // 创建API客户端实例
+        const apiClient = new PayrollAPI();
+        let currentApplications = [];
+        let employees = [];
+        
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            const token = localStorage.getItem('adminToken');  // 修正：使用正确的token键名
+            if (!token) {
+                alert('请先登录');
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            loadApplications();
+            loadEmployees();
+            
+            // 设置今天的日期
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('resignationDate').value = today;
+        });
+        
+        // 标签页切换
+        function showTab(tabName, event) {
+            const tabs = document.querySelectorAll('.tab-content');
+            const buttons = document.querySelectorAll('.tab-button');
+            
+            tabs.forEach(tab => {
+                tab.classList.remove('active');
+            });
+            buttons.forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            document.getElementById(tabName).classList.add('active');
+            if (event && event.target) {
+                event.target.classList.add('active');
+            }
+            
+            if (tabName === 'reports') {
+                loadReports();
+            } else if (tabName === 'signatures') {
+                loadSignatureApplications();
+            }
+        }
+        
+        // 加载离职申请列表
+        async function loadApplications() {
+            const status = document.getElementById('statusFilter').value;
+            const url = status ? `/api/v1/resignations?status=${status}` : '/api/v1/resignations';
+            
+            try {
+                const response = await apiClient.request(url.replace('/api/v1', ''));
+                if (response.data) {
+                    currentApplications = response.data;
+                    displayApplications(response.data);
+                }
+            } catch (error) {
+                console.error('加载离职申请失败:', error);
+            }
+        }
+        
+        // 显示离职申请
+        function displayApplications(applications) {
+            const tbody = document.getElementById('applicationsList');
+            
+            if (!applications || applications.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7">暂无数据</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = applications.map(app => `
+                <tr>
+                    <td>${app.employee ? app.employee.name : ''}</td>
+                    <td>${app.employee ? app.employee.department : ''}</td>
+                    <td>${getResignationType(app.resignation_type)}</td>
+                    <td>${formatDate(app.resignation_date)}</td>
+                    <td>${formatDate(app.last_working_date)}</td>
+                    <td><span class="status-badge status-${app.status}">${getStatusText(app.status)}</span></td>
+                    <td>
+                        ${getActionButtons(app)}
+                    </td>
+                </tr>
+            `).join('');
+        }
+        
+        // 获取操作按钮
+        function getActionButtons(app) {
+            let buttons = '';
+            
+            if (app.status === 'draft') {
+                // 草稿状态：可以提交或删除
+                buttons += `<button class="btn btn-primary" onclick="submitApplication('${app.uuid}')">📤 提交</button> `;
+                buttons += `<button class="btn btn-danger" onclick="deleteApplication('${app.uuid}')">🗑️ 删除</button>`;
+            } else if (app.status === 'submitted') {
+                // 已提交状态：等待批准
+                buttons += `<button class="btn btn-success" onclick="approveApplication('${app.uuid}')">✅ 批准</button> `;
+                buttons += `<button class="btn btn-danger" onclick="rejectApplication('${app.uuid}')">❌ 驳回</button>`;
+            } else if (app.status === 'rejected') {
+                // 已驳回状态：可以重新提交或删除
+                buttons += `<button class="btn btn-primary" onclick="resubmitApplication('${app.uuid}')">🔄 重新提交</button> `;
+                buttons += `<button class="btn btn-danger" onclick="deleteApplication('${app.uuid}')">🗑️ 删除</button>`;
+            } else if (app.status === 'approved' || app.status === 'completed') {
+                // 已批准或完成状态：可以签名和生成报告
+                buttons += `<button class="btn btn-info" onclick="checkAndGenerateReport('${app.uuid}', ${app.id})">📝 智能生成报告</button> `;
+                buttons += `<button class="btn btn-warning" onclick="generateSignLink('${app.uuid}')">🔗 签名链接</button>`;
+                buttons += `<button class="btn btn-primary" onclick="(async () => {
+                    try {
+                        console.log('Direct report generation for application:', ${app.id});
+                        await createReport(${app.id});
+                    } catch (error) {
+                        console.error('Error creating report:', error);
+                        alert('生成报告时出错：' + error.message);
+                    }
+                })();">📄 直接生成</button>`;
+            }
+            
+            // 所有状态都可以查看详情
+            buttons += ` <button class="btn" onclick="viewApplication('${app.uuid}')">👁️ 查看</button>`;
+            
+            return buttons;
+        }
+        
+        // 加载员工列表
+        async function loadEmployees() {
+            try {
+                const response = await apiClient.getEmployees();
+                if (response.data) {
+                    employees = response.data;
+                    const select = document.getElementById('employeeSelect');
+                    select.innerHTML = '<option value="">请选择员工</option>' +
+                        employees.map(emp => `<option value="${emp.id}">${emp.name} - ${emp.employee_no}</option>`).join('');
+                }
+            } catch (error) {
+                console.error('加载员工列表失败:', error);
+            }
+        }
+        
+        // 创建离职申请表单提交
+        document.getElementById('createForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const data = {
+                employee_id: parseInt(document.getElementById('employeeSelect').value),
+                resignation_type: document.getElementById('resignationType').value,
+                resignation_date: document.getElementById('resignationDate').value + 'T00:00:00Z',
+                last_working_date: document.getElementById('lastWorkingDate').value + 'T00:00:00Z',
+                reason: document.getElementById('reason').value,
+                handover_notes: document.getElementById('handoverNotes').value
+            };
+            
+            try {
+                const response = await apiClient.request('/resignations', {
+                    method: 'POST',
+                    body: JSON.stringify(data)
+                });
+                if (response.message) {
+                    alert(response.message);
+                    document.getElementById('createForm').reset();
+                    showTab('applications', null);  // 不传递event，避免错误
+                    // 手动激活对应的按钮
+                    document.querySelectorAll('.tab-button').forEach(btn => {
+                        btn.classList.remove('active');
+                        if (btn.textContent === '离职申请') {
+                            btn.classList.add('active');
+                        }
+                    });
+                    loadApplications();
+                }
+            } catch (error) {
+                alert('创建失败: ' + (error.response?.data?.error || error.message));
+            }
+        });
+        
+        // 提交申请
+        async function submitApplication(uuid) {
+            try {
+                const response = await apiClient.request(`/resignations/${uuid}`, {
+                    method: 'PUT',
+                    body: JSON.stringify({ status: 'submitted' })
+                });
+                if (response.message) {
+                    alert('申请已提交');
+                    loadApplications();
+                }
+            } catch (error) {
+                alert('提交失败: ' + (error.response?.data?.error || error.message));
+            }
+        }
+        
+        // 批准申请
+        async function approveApplication(uuid) {
+            const comments = prompt('请输入审批意见:');
+            if (comments === null) return;
+            
+            try {
+                const response = await apiClient.request(`/resignations/${uuid}/approve`, {
+                    method: 'POST',
+                    body: JSON.stringify({ approval_comments: comments })
+                });
+                if (response.message) {
+                    alert('申请已批准');
+                    loadApplications();
+                }
+            } catch (error) {
+                alert('批准失败: ' + (error.response?.data?.error || error.message));
+            }
+        }
+        
+        // 驳回申请
+        async function rejectApplication(uuid) {
+            const comments = prompt('请输入驳回原因:');
+            if (comments === null) return;
+            
+            try {
+                const response = await apiClient.request(`/resignations/${uuid}/reject`, {
+                    method: 'POST',
+                    body: JSON.stringify({ approval_comments: comments })
+                });
+                if (response.message) {
+                    alert('申请已驳回');
+                    loadApplications();
+                }
+            } catch (error) {
+                alert('驳回失败: ' + (error.response?.data?.error || error.message));
+            }
+        }
+        
+        // 重新提交申请
+        async function resubmitApplication(uuid) {
+            if (!confirm('确定要重新提交这个申请吗？')) return;
+            
+            try {
+                const response = await apiClient.request(`/resignations/${uuid}`, {
+                    method: 'PUT',
+                    body: JSON.stringify({ status: 'submitted' })
+                });
+                if (response.message) {
+                    alert('申请已重新提交');
+                    loadApplications();
+                }
+            } catch (error) {
+                alert('重新提交失败: ' + (error.response?.data?.error || error.message));
+            }
+        }
+        
+        // 删除申请
+        async function deleteApplication(uuid) {
+            if (!confirm('确定要删除这个申请吗？')) return;
+            
+            try {
+                const response = await apiClient.request(`/resignations/${uuid}`, {
+                    method: 'DELETE'
+                });
+                if (response.message) {
+                    alert('申请已删除');
+                    loadApplications();
+                }
+            } catch (error) {
+                alert('删除失败: ' + (error.response?.data?.error || error.message));
+            }
+        }
+        
+        // 查看申请详情
+        async function viewApplication(uuid) {
+            try {
+                const response = await apiClient.request(`/resignations/${uuid}`);
+                if (response.data) {
+                    // 同时加载签名信息
+                    const signaturesResponse = await apiClient.request(`/resignations/${uuid}/signatures`);
+                    showApplicationDetail(response.data, signaturesResponse.data || []);
+                }
+            } catch (error) {
+                alert('获取详情失败: ' + (error.response?.data?.error || error.message));
+            }
+        }
+        
+        // 显示申请详情
+        function showApplicationDetail(app, signatures) {
+            const modalTitle = document.getElementById('modalTitle');
+            const modalBody = document.getElementById('modalBody');
+            
+            modalTitle.textContent = '离职申请详情';
+            
+            // 构建签名显示HTML
+            let signaturesHtml = '';
+            if (signatures && signatures.length > 0) {
+                signaturesHtml = `
+                    <h3>电子签名记录</h3>
+                    <div style="background: #f8f9fa; padding: 15px; border-radius: 5px;">
+                        ${signatures.map(sig => `
+                            <div style="margin-bottom: 15px; padding: 15px; background: white; border-radius: 5px; border: 1px solid #e0e0e0;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                                    <strong>${getSignerType(sig.signer_type)}</strong>
+                                    <span style="color: #666; font-size: 14px;">
+                                        ${formatDateTime(sig.signed_at)}
+                                    </span>
+                                </div>
+                                ${sig.signature_data ? 
+                                    `<div style="text-align: center; padding: 10px; background: #fafafa; border-radius: 3px;">
+                                        <img src="${sig.signature_data}" style="max-width: 200px; max-height: 100px; border: 1px solid #ddd; padding: 5px; background: white;">
+                                    </div>` : 
+                                    '<span style="color: #48bb78;">✓ 已签名</span>'
+                                }
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            } else {
+                signaturesHtml = `
+                    <h3>电子签名记录</h3>
+                    <div style="background: #fff5f5; padding: 15px; border-radius: 5px; border: 1px solid #feb2b2;">
+                        <p style="color: #c53030; margin: 0;">⚠️ 暂无签名记录</p>
+                        <p style="color: #742a2a; font-size: 14px; margin-top: 10px;">
+                            如需添加签名，请先生成签名链接发送给相关人员
+                        </p>
+                    </div>
+                `;
+            }
+            
+            modalBody.innerHTML = `
+                <div class="report-preview">
+                    <h3>员工信息</h3>
+                    <p><strong>姓名:</strong> ${app.employee?.name || ''}</p>
+                    <p><strong>工号:</strong> ${app.employee?.employee_no || ''}</p>
+                    <p><strong>部门:</strong> ${app.employee?.department || ''}</p>
+                    <p><strong>职位:</strong> ${app.employee?.position || ''}</p>
+                    
+                    <h3>离职信息</h3>
+                    <p><strong>离职类型:</strong> ${getResignationType(app.resignation_type)}</p>
+                    <p><strong>申请日期:</strong> ${formatDate(app.resignation_date)}</p>
+                    <p><strong>最后工作日:</strong> ${formatDate(app.last_working_date)}</p>
+                    <p><strong>状态:</strong> <span class="status-badge status-${app.status}">${getStatusText(app.status)}</span></p>
+                    
+                    <h3>离职原因</h3>
+                    <p>${app.reason}</p>
+                    
+                    <h3>工作交接</h3>
+                    <p>${app.handover_notes || '无'}</p>
+                    
+                    ${app.approval_comments ? `
+                        <h3>审批意见</h3>
+                        <p>${app.approval_comments}</p>
+                    ` : ''}
+                    
+                    ${signaturesHtml}
+                </div>
+            `;
+            
+            document.getElementById('modal').style.display = 'block';
+        }
+        
+        // 检查签名状态并生成报告
+        async function checkAndGenerateReport(applicationUuid, applicationId) {
+            try {
+                // 先检查签名状态
+                const sigResponse = await apiClient.request(`/resignations/${applicationUuid}/signatures`);
+                const signatures = sigResponse.data || [];
+                
+                const modalTitle = document.getElementById('modalTitle');
+                const modalBody = document.getElementById('modalBody');
+                
+                modalTitle.textContent = '智能报告生成向导';
+                
+                const signerTypes = ['employee', 'hr', 'manager'];
+                const signerNames = {
+                    'employee': '员工本人',
+                    'hr': '人力资源部',
+                    'manager': '部门主管'
+                };
+                
+                // 检查哪些签名缺失
+                const missingSigs = signerTypes.filter(type => 
+                    !signatures.find(sig => sig.signer_type === type)
+                );
+                
+                if (missingSigs.length > 0) {
+                    // 有缺失的签名
+                    modalBody.innerHTML = `
+                        <div style="padding: 20px;">
+                            <div class="alert alert-warning">
+                                <h4>⚠️ 检测到签名未完成</h4>
+                                <p>以下签名尚未添加：</p>
+                                <ul>
+                                    ${missingSigs.map(type => `<li>${signerNames[type]}</li>`).join('')}
+                                </ul>
+                            </div>
+                            
+                            <p>请选择操作：</p>
+                            
+                            <div style="margin: 20px 0;">
+                                <button class="btn btn-warning" onclick="autoAddSignaturesAndGenerate('${applicationUuid}', ${applicationId})">
+                                    🤖 自动添加测试签名并生成报告
+                                </button>
+                            </div>
+                            
+                            <div style="margin: 20px 0;">
+                                <button class="btn btn-primary" onclick="generateSignLink('${applicationUuid}'); closeModal();">
+                                    🔗 生成签名链接（手动签名）
+                                </button>
+                            </div>
+                            
+                            <div style="margin: 20px 0;">
+                                <button class="btn btn-success" onclick="(async () => {
+                                    try {
+                                        console.log('Generating report without signatures for application:', ${applicationId});
+                                        closeModal(); // 先关闭当前向导
+                                        await new Promise(resolve => setTimeout(resolve, 300)); // 等待模态框关闭
+                                        await createReport(${applicationId}); // 然后显示报告表单
+                                    } catch (error) {
+                                        console.error('Error creating report:', error);
+                                        alert('生成报告时出错：' + error.message);
+                                    }
+                                })();">
+                                    📄 直接生成报告（不含签名）
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                } else {
+                    // 所有签名已完成
+                    modalBody.innerHTML = `
+                        <div style="padding: 20px;">
+                            <div class="alert alert-success">
+                                <h4>✅ 所有签名已完成</h4>
+                                <p>检测到所有必要的签名都已添加。</p>
+                            </div>
+                            
+                            <p>签名详情：</p>
+                            <ul>
+                                ${signatures.map(sig => `
+                                    <li>${signerNames[sig.signer_type]} - ${formatDateTime(sig.signed_at)}</li>
+                                `).join('')}
+                            </ul>
+                            
+                            <div style="margin: 20px 0; text-align: center;">
+                                <button class="btn btn-success btn-lg" onclick="(async () => {
+                                    try {
+                                        console.log('Generating report with signatures for application:', ${applicationId});
+                                        closeModal(); // 先关闭当前向导
+                                        await new Promise(resolve => setTimeout(resolve, 300)); // 等待模态框关闭
+                                        await createReport(${applicationId}); // 然后显示报告表单
+                                    } catch (error) {
+                                        console.error('Error creating report:', error);
+                                        alert('生成报告时出错：' + error.message);
+                                    }
+                                })();">
+                                    ✨ 生成包含签名的完整报告
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                document.getElementById('modal').style.display = 'block';
+                
+            } catch (error) {
+                alert('检查签名状态失败: ' + (error.response?.data?.error || error.message));
+            }
+        }
+        
+        // 自动添加签名并生成报告
+        async function autoAddSignaturesAndGenerate(applicationUuid, applicationId) {
+            try {
+                const signerTypes = ['employee', 'hr', 'manager'];
+                const signerNames = {
+                    'employee': '测试员工',
+                    'hr': 'HR审核',
+                    'manager': '部门主管'
+                };
+                
+                // 获取现有签名
+                const existingSigs = await apiClient.request(`/resignations/${applicationUuid}/signatures`);
+                const existing = existingSigs.data || [];
+                
+                // 只添加缺失的签名
+                for (const type of signerTypes) {
+                    if (!existing.find(sig => sig.signer_type === type)) {
+                        // 创建测试签名
+                        const canvas = document.createElement('canvas');
+                        canvas.width = 280;
+                        canvas.height = 150;
+                        const ctx = canvas.getContext('2d');
+                        
+                        ctx.fillStyle = 'white';
+                        ctx.fillRect(0, 0, canvas.width, canvas.height);
+                        
+                        ctx.fillStyle = 'black';
+                        ctx.font = 'italic 30px cursive';
+                        ctx.fillText(signerNames[type], 50, 80);
+                        
+                        ctx.strokeStyle = '#333';
+                        ctx.lineWidth = 2;
+                        ctx.beginPath();
+                        ctx.moveTo(40, 100);
+                        ctx.quadraticCurveTo(140, 70, 240, 100);
+                        ctx.stroke();
+                        
+                        const signatureData = canvas.toDataURL();
+                        
+                        await apiClient.request('/resignations/sign', {
+                            method: 'POST',
+                            body: JSON.stringify({
+                                application_id: applicationUuid,
+                                signer_type: type,
+                                signature_data: signatureData,
+                                device_info: 'Auto Generated'
+                            })
+                        });
+                    }
+                }
+                
+                alert('✅ 签名添加成功！现在生成报告...');
+                closeModal();
+                
+                // 生成报告
+                createReport(applicationId);
+                
+            } catch (error) {
+                alert('自动签名失败: ' + (error.response?.data?.error || error.message));
+            }
+        }
+        
+        // 创建离职报告
+        async function createReport(applicationId) {
+            // 首先检查申请状态
+            try {
+                console.log('Creating report for application ID:', applicationId);
+                
+                // 获取申请信息 - 先尝试从缓存获取
+                let application = currentApplications?.find(app => app.id === applicationId);
+                
+                if (!application) {
+                    console.log('Application not in cache, loading from server...');
+                    // 尝试重新加载所有申请
+                    await loadApplications();
+                    application = currentApplications?.find(app => app.id === applicationId);
+                    
+                    if (!application) {
+                        // 如果还是找不到，尝试通过单独的API查询
+                        try {
+                            const response = await apiClient.request('/resignations');
+                            if (response.data && Array.isArray(response.data)) {
+                                application = response.data.find(app => app.id === applicationId);
+                                console.log('Application found in full list:', application);
+                            }
+                        } catch (error) {
+                            console.error('Failed to load application from API:', error);
+                        }
+                        
+                        if (!application) {
+                            alert('未找到对应的离职申请，请刷新页面后重试');
+                            return;
+                        }
+                    }
+                }
+                
+                // 检查申请状态
+                console.log('Application status:', application.status);
+                if (application.status !== 'approved' && application.status !== 'completed') {
+                    const statusText = getStatusText(application.status);
+                    console.error('Invalid status for report generation:', application.status);
+                    alert(`⚠️ 无法生成报告\n\n当前申请状态为"${statusText}"，只有已批准的申请才能生成报告。\n\n请先批准该申请。`);
+                    return;
+                }
+                
+                console.log('Status check passed, showing report form...');
+                
+                const modalTitle = document.getElementById('modalTitle');
+                const modalBody = document.getElementById('modalBody');
+                
+                if (!modalTitle || !modalBody) {
+                    console.error('Modal elements not found');
+                    alert('页面元素加载失败，请刷新页面');
+                    return;
+                }
+                
+                console.log('Setting modal content for application:', application);
+                modalTitle.textContent = '创建离职报告';
+                modalBody.innerHTML = `
+                    <form id="reportForm">
+                        <div class="alert alert-info" style="margin-bottom: 20px;">
+                            <strong>员工信息：</strong>${application.employee?.name || '-'} - ${application.employee?.department || '-'}
+                        </div>
+                        <div class="form-group">
+                            <label>工作总结</label>
+                            <textarea id="workSummary" required placeholder="请描述工作交接情况..."></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>未完成事项</label>
+                            <textarea id="unfinishedTasks" placeholder="请列出未完成的工作事项（如无可留空）..."></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>
+                                <input type="checkbox" id="propertyReturned">
+                                公司财产已归还
+                            </label>
+                        </div>
+                        <div class="form-group">
+                            <label>
+                                <input type="checkbox" id="financialSettlement">
+                                财务已结清
+                            </label>
+                        </div>
+                        <button type="submit" class="btn btn-primary">生成报告</button>
+                    </form>
+                `;
+                
+                document.getElementById('modal').style.display = 'block';
+                console.log('Modal displayed, waiting for form submission...');
+                
+                document.getElementById('reportForm').onsubmit = async function(e) {
+                    e.preventDefault();
+                    
+                    const data = {
+                        application_id: parseInt(applicationId),
+                        work_summary: document.getElementById('workSummary').value,
+                        unfinished_tasks: document.getElementById('unfinishedTasks').value,
+                        company_property_returned: document.getElementById('propertyReturned').checked,
+                        financial_settlement: document.getElementById('financialSettlement').checked
+                    };
+                    
+                    try {
+                        const response = await apiClient.request('/resignation-reports', {
+                            method: 'POST',
+                            body: JSON.stringify(data)
+                        });
+                        if (response.message) {
+                            alert('✅ 报告生成成功！\n\n您可以在"离职报告"标签页查看生成的报告。');
+                            closeModal();
+                            // 如果当前在报告页面，刷新列表
+                            if (document.getElementById('reports').classList.contains('active')) {
+                                loadReports();
+                            }
+                        }
+                    } catch (error) {
+                        const errorMsg = error.response?.data?.error || error.message;
+                        // 提供更友好的错误提示
+                        if (errorMsg.includes('未批准')) {
+                            alert('⚠️ 生成失败\n\n离职申请尚未批准，请先批准该申请后再生成报告。');
+                        } else if (errorMsg.includes('已存在')) {
+                            alert('⚠️ 生成失败\n\n该申请已有报告，如需重新生成，请先删除原有报告。');
+                        } else {
+                            alert('生成失败: ' + errorMsg);
+                        }
+                    }
+                };
+                
+            } catch (error) {
+                alert('操作失败: ' + error.message);
+            }
+        }
+        
+        // 生成签名链接
+        async function generateSignLink(uuid) {
+            const modalTitle = document.getElementById('modalTitle');
+            const modalBody = document.getElementById('modalBody');
+            
+            modalTitle.textContent = '生成签名链接';
+            modalBody.innerHTML = `
+                <div class="report-preview">
+                    <h3>选择签名人身份</h3>
+                    <p>请选择要生成签名链接的身份类型：</p>
+                    <div style="margin: 20px 0;">
+                        <select id="tokenSignerType" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+                            <option value="">请选择签名身份</option>
+                            <option value="employee">员工本人</option>
+                            <option value="hr">人力资源部</option>
+                            <option value="manager">部门主管</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-primary" onclick="generateTokenForSigner('${uuid}')">生成链接</button>
+                    <div id="tokenResult" style="margin-top: 20px;"></div>
+                </div>
+            `;
+            
+            document.getElementById('modal').style.display = 'block';
+        }
+        
+        // 为特定签名人生成令牌
+        async function generateTokenForSigner(uuid) {
+            const signerType = document.getElementById('tokenSignerType').value;
+            
+            if (!signerType) {
+                alert('请选择签名身份');
+                return;
+            }
+            
+            try {
+                const response = await apiClient.request(`/resignations/${uuid}/generate-sign-token`, {
+                    method: 'POST',
+                    body: JSON.stringify({ signer_type: signerType })
+                });
+                
+                if (response.url) {
+                    const baseUrl = window.location.origin;
+                    const fullUrl = baseUrl + response.url;
+                    
+                    document.getElementById('tokenResult').innerHTML = `
+                        <h4>签名链接已生成</h4>
+                        <div style="padding: 15px; background: #f0f0f0; border-radius: 5px; word-break: break-all;">
+                            <input type="text" id="signLinkInput" value="${fullUrl}" readonly style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; margin-bottom: 10px;">
+                            <button class="btn btn-primary" onclick="copySignLink()">复制链接</button>
+                        </div>
+                        <p style="color: #666; font-size: 14px; margin-top: 10px;">
+                            <strong>说明：</strong><br>
+                            • 该链接专门为 <strong>${getSignerTypeText(signerType)}</strong> 生成<br>
+                            • 链接有效期7天<br>
+                            • 每个链接只能使用一次<br>
+                            • 过期时间：${formatDateTime(response.expires_at)}
+                        </p>
+                    `;
+                }
+            } catch (error) {
+                alert('生成链接失败: ' + (error.response?.data?.error || error.message));
+            }
+        }
+        
+        // 获取签名类型文本
+        function getSignerTypeText(type) {
+            const types = {
+                'employee': '员工本人',
+                'hr': '人力资源部',
+                'manager': '部门主管'
+            };
+            return types[type] || type;
+        }
+        
+        // 复制签名链接
+        function copySignLink() {
+            const input = document.getElementById('signLinkInput');
+            input.select();
+            document.execCommand('copy');
+            alert('链接已复制到剪贴板');
+        }
+        
+        // 显示签名界面（改为内部查看）
+        function showSignature(uuid) {
+            const modalTitle = document.getElementById('modalTitle');
+            const modalBody = document.getElementById('modalBody');
+            
+            modalTitle.textContent = '电子签名';
+            modalBody.innerHTML = `
+                <div class="signature-container">
+                    <label>签名类型</label>
+                    <select id="signerType">
+                        <option value="employee">员工</option>
+                        <option value="hr">HR</option>
+                        <option value="manager">主管</option>
+                    </select>
+                    
+                    <h4>请在下方签名:</h4>
+                    <canvas id="signaturePad" class="signature-pad" width="600" height="200"></canvas>
+                    
+                    <div class="signature-controls">
+                        <button class="btn" onclick="clearSignature()">清除</button>
+                        <button class="btn btn-primary" onclick="saveSignature('${uuid}')">保存签名</button>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('modal').style.display = 'block';
+            initSignaturePad();
+        }
+        
+        // 初始化签名板
+        let signatureCanvas, signatureContext;
+        let isDrawing = false;
+        
+        function initSignaturePad() {
+            signatureCanvas = document.getElementById('signaturePad');
+            signatureContext = signatureCanvas.getContext('2d');
+            
+            signatureContext.strokeStyle = '#000';
+            signatureContext.lineWidth = 2;
+            signatureContext.lineCap = 'round';
+            
+            signatureCanvas.addEventListener('mousedown', startDrawing);
+            signatureCanvas.addEventListener('mousemove', draw);
+            signatureCanvas.addEventListener('mouseup', stopDrawing);
+            signatureCanvas.addEventListener('mouseout', stopDrawing);
+            
+            // 支持触摸设备
+            signatureCanvas.addEventListener('touchstart', handleTouch);
+            signatureCanvas.addEventListener('touchmove', handleTouch);
+            signatureCanvas.addEventListener('touchend', stopDrawing);
+        }
+        
+        function startDrawing(e) {
+            isDrawing = true;
+            const rect = signatureCanvas.getBoundingClientRect();
+            signatureContext.beginPath();
+            signatureContext.moveTo(e.clientX - rect.left, e.clientY - rect.top);
+        }
+        
+        function draw(e) {
+            if (!isDrawing) return;
+            const rect = signatureCanvas.getBoundingClientRect();
+            signatureContext.lineTo(e.clientX - rect.left, e.clientY - rect.top);
+            signatureContext.stroke();
+        }
+        
+        function stopDrawing() {
+            isDrawing = false;
+        }
+        
+        function handleTouch(e) {
+            e.preventDefault();
+            const touch = e.touches[0];
+            const mouseEvent = new MouseEvent(e.type === 'touchstart' ? 'mousedown' : 'mousemove', {
+                clientX: touch.clientX,
+                clientY: touch.clientY
+            });
+            signatureCanvas.dispatchEvent(mouseEvent);
+        }
+        
+        function clearSignature() {
+            signatureContext.clearRect(0, 0, signatureCanvas.width, signatureCanvas.height);
+        }
+        
+        // 保存签名
+        async function saveSignature(uuid) {
+            const signatureData = signatureCanvas.toDataURL();
+            const signerType = document.getElementById('signerType').value;
+            
+            try {
+                const response = await apiClient.request('/resignations/sign', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        application_id: uuid,
+                        signer_type: signerType,
+                        signature_data: signatureData,
+                        device_info: navigator.userAgent
+                    })
+                });
+                
+                if (response.message) {
+                    alert('签名保存成功');
+                    closeModal();
+                    loadApplications();
+                }
+            } catch (error) {
+                alert('保存失败: ' + (error.response?.data?.error || error.message));
+            }
+        }
+        
+        // 加载报告列表
+        async function loadReports() {
+            try {
+                const response = await apiClient.request('/resignation-reports');
+                if (response.data && response.data.length > 0) {
+                    displayReports(response.data);
+                } else {
+                    document.getElementById('reportsList').innerHTML = '<p>暂无离职报告</p>';
+                }
+            } catch (error) {
+                console.error('加载报告失败:', error);
+                document.getElementById('reportsList').innerHTML = '<p>加载报告失败</p>';
+            }
+        }
+        
+        // 显示报告列表
+        function displayReports(reports) {
+            const reportsList = document.getElementById('reportsList');
+            
+            reportsList.innerHTML = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>员工姓名</th>
+                            <th>部门</th>
+                            <th>离职类型</th>
+                            <th>生成时间</th>
+                            <th>状态</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${reports.map(report => {
+                            // 检查报告格式是否为新版（包含中文离职类型）
+                            const isNewFormat = report.report_content && report.report_content.includes('主动离职');
+                            return `
+                            <tr>
+                                <td>${report.application?.employee?.name || '-'}</td>
+                                <td>${report.application?.employee?.department || '-'}</td>
+                                <td>${getResignationType(report.application?.resignation_type)}</td>
+                                <td>${formatDateTime(report.generated_at)}</td>
+                                <td>
+                                    ${isNewFormat ? 
+                                        '<span class="status-badge status-approved">新格式</span>' : 
+                                        '<span class="status-badge status-warning">需更新</span>'
+                                    }
+                                </td>
+                                <td>
+                                    <button class="btn btn-primary" onclick="viewReport(${report.id})">查看</button>
+                                    <button class="btn btn-success" onclick="printReport(${report.id})">打印</button>
+                                    ${!isNewFormat ? 
+                                        `<button class="btn btn-warning" onclick="regenerateReport(${report.id}, ${report.application_id})">重新生成</button>` : 
+                                        ''
+                                    }
+                                </td>
+                            </tr>`;
+                        }).join('')}
+                    </tbody>
+                </table>
+            `;
+        }
+        
+        // 查看报告
+        async function viewReport(reportId) {
+            try {
+                const response = await apiClient.request(`/resignation-reports/${reportId}`);
+                if (response.data) {
+                    showReportDetail(response.data);
+                }
+            } catch (error) {
+                alert('获取报告失败: ' + (error.response?.data?.error || error.message));
+            }
+        }
+        
+        // 在新窗口查看报告
+        async function viewReportInNewWindow(reportId) {
+            try {
+                const response = await apiClient.request(`/resignation-reports/${reportId}`);
+                if (response.data && response.data.report_content) {
+                    const reportWindow = window.open('', '_blank', 'width=900,height=700');
+                    reportWindow.document.write(response.data.report_content);
+                    reportWindow.document.close();
+                }
+            } catch (error) {
+                alert('获取报告失败: ' + (error.response?.data?.error || error.message));
+            }
+        }
+        
+        // 从模态框打印报告
+        function printReportFromModal(reportId) {
+            closeModal();
+            printReport(reportId);
+        }
+        
+        // 从模态框重新生成报告
+        function regenerateFromModal(reportId, applicationId) {
+            closeModal();
+            regenerateReport(reportId, applicationId);
+        }
+        
+        // 添加签名并重新生成报告
+        async function addSignaturesAndRegenerate(applicationId) {
+            if (!confirm('报告已生成但缺少签名。是否要为此申请添加测试签名并重新生成报告？')) {
+                return;
+            }
+            
+            try {
+                // 先获取申请信息
+                const appResponse = await apiClient.request('/resignations');
+                const applications = appResponse.data || [];
+                const application = applications.find(app => app.id === applicationId);
+                
+                if (!application) {
+                    alert('未找到对应的离职申请');
+                    return;
+                }
+                
+                // 添加三个测试签名
+                const signerTypes = ['employee', 'hr', 'manager'];
+                const signerNames = {
+                    'employee': application.employee?.name || '员工',
+                    'hr': 'HR审核',
+                    'manager': '部门主管'
+                };
+                
+                for (const type of signerTypes) {
+                    // 创建一个临时canvas生成签名
+                    const canvas = document.createElement('canvas');
+                    canvas.width = 280;
+                    canvas.height = 150;
+                    const ctx = canvas.getContext('2d');
+                    
+                    // 绘制白色背景
+                    ctx.fillStyle = 'white';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    
+                    // 绘制签名
+                    ctx.fillStyle = 'black';
+                    ctx.font = 'italic 30px cursive';
+                    ctx.fillText(signerNames[type], 50, 80);
+                    
+                    // 添加装饰线
+                    ctx.strokeStyle = '#333';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.moveTo(40, 100);
+                    ctx.quadraticCurveTo(140, 70, 240, 100);
+                    ctx.stroke();
+                    
+                    const signatureData = canvas.toDataURL();
+                    
+                    // 提交签名
+                    await apiClient.request('/resignations/sign', {
+                        method: 'POST',
+                        body: JSON.stringify({
+                            application_id: application.uuid,
+                            signer_type: type,
+                            signature_data: signatureData,
+                            device_info: 'Auto Generated'
+                        })
+                    });
+                }
+                
+                alert('签名已添加成功！现在将重新生成报告...');
+                
+                // 查找并删除旧报告
+                const reportsResponse = await apiClient.request('/resignation-reports');
+                const reports = reportsResponse.data || [];
+                const oldReport = reports.find(r => r.application_id === applicationId);
+                
+                if (oldReport) {
+                    await apiClient.request(`/resignation-reports/${oldReport.id}`, {
+                        method: 'DELETE'
+                    });
+                }
+                
+                // 重新生成报告
+                const createResponse = await apiClient.request('/resignation-reports', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        application_id: applicationId,
+                        work_summary: oldReport?.work_summary || '工作总结',
+                        unfinished_tasks: oldReport?.unfinished_tasks || '未完成事项',
+                        company_property_returned: oldReport?.company_property_returned !== false,
+                        financial_settlement: oldReport?.financial_settlement !== false
+                    })
+                });
+                
+                if (createResponse.data) {
+                    alert('报告已重新生成，包含所有签名！');
+                    closeModal();
+                    loadReports();
+                }
+                
+            } catch (error) {
+                alert('操作失败: ' + (error.response?.data?.error || error.message));
+            }
+        }
+        
+        // 显示报告详情
+        function showReportDetail(report) {
+            const modalTitle = document.getElementById('modalTitle');
+            const modalBody = document.getElementById('modalBody');
+            
+            modalTitle.textContent = '离职报告详情';
+            
+            // 如果报告内容是HTML格式，在模态框中显示
+            if (report.report_content) {
+                // 检查是否为新格式
+                const isNewFormat = report.report_content.includes('主动离职');
+                const hasSignatures = report.report_content.includes('<img');
+                
+                // 创建一个iframe来显示完整的HTML报告内容，保持样式隔离
+                modalBody.innerHTML = `
+                    <div style="padding: 20px;">
+                        <div style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                ${isNewFormat ? 
+                                    '<span class="status-badge status-approved">✅ 新格式报告</span>' : 
+                                    '<span class="status-badge status-warning">⚠️ 旧格式报告</span>'
+                                }
+                                ${hasSignatures ? 
+                                    '<span class="status-badge status-approved" style="margin-left: 10px;">✅ 包含签名</span>' : 
+                                    '<span class="status-badge status-warning" style="margin-left: 10px;">⚠️ 无签名</span>'
+                                }
+                            </div>
+                            <div>
+                                <button class="btn btn-success" onclick="printReportFromModal(${report.id})">🖨️ 打印</button>
+                                <button class="btn btn-primary" onclick="viewReportInNewWindow(${report.id})">📋 新窗口查看</button>
+                                ${!isNewFormat ? 
+                                    `<button class="btn btn-warning" onclick="regenerateFromModal(${report.id}, ${report.application_id})">🔄 重新生成</button>` : 
+                                    ''
+                                }
+                                ${!hasSignatures && isNewFormat ? 
+                                    `<button class="btn btn-warning" onclick="addSignaturesAndRegenerate(${report.application_id})">➕ 添加签名</button>` : 
+                                    ''
+                                }
+                            </div>
+                        </div>
+                        <iframe id="reportFrame" style="width: 100%; height: 500px; border: 1px solid #ddd; border-radius: 5px; background: white;"></iframe>
+                    </div>
+                `;
+                
+                // 将报告内容写入iframe
+                setTimeout(() => {
+                    const iframe = document.getElementById('reportFrame');
+                    const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                    iframeDoc.open();
+                    iframeDoc.write(report.report_content);
+                    iframeDoc.close();
+                }, 100);
+            } else {
+                // 如果没有HTML内容，显示结构化数据
+                modalBody.innerHTML = `
+                    <div class="report-preview">
+                        <h3>离职报告</h3>
+                        <h4>员工信息</h4>
+                        <p><strong>姓名:</strong> ${report.application?.employee?.name || '-'}</p>
+                        <p><strong>部门:</strong> ${report.application?.employee?.department || '-'}</p>
+                        <p><strong>职位:</strong> ${report.application?.employee?.position || '-'}</p>
+                        <p><strong>离职类型:</strong> ${getResignationType(report.application?.resignation_type)}</p>
+                        <p><strong>离职原因:</strong> ${report.application?.reason || '-'}</p>
+                        <p><strong>最后工作日:</strong> ${formatDate(report.application?.last_working_date)}</p>
+                        
+                        <h4>工作总结</h4>
+                        <p>${report.work_summary || '无'}</p>
+                        
+                        <h4>未完成事项</h4>
+                        <p>${report.unfinished_tasks || '无'}</p>
+                        
+                        <h4>交接状态</h4>
+                        <p><strong>公司财产归还:</strong> ${report.company_property_returned ? '是' : '否'}</p>
+                        <p><strong>财务结清:</strong> ${report.financial_settlement ? '是' : '否'}</p>
+                        
+                        <h4>生成时间</h4>
+                        <p>${formatDateTime(report.generated_at)}</p>
+                        
+                        <div style="margin-top: 20px; text-align: center;">
+                            <button class="btn btn-primary" onclick="window.open('/web/view-resignation-report.html', '_blank')">
+                                打开报告查看器
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            document.getElementById('modal').style.display = 'block';
+        }
+        
+        // 打印报告内容
+        function printReportContent(encodedContent) {
+            const content = decodeURIComponent(encodedContent);
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(content);
+            printWindow.document.close();
+            printWindow.print();
+        }
+        
+        // 打印报告
+        async function printReport(reportId) {
+            try {
+                const response = await apiClient.request(`/resignation-reports/${reportId}`);
+                if (response.data && response.data.report_content) {
+                    // 创建打印窗口
+                    const printWindow = window.open('', '_blank', 'width=900,height=700');
+                    
+                    // 写入报告内容
+                    printWindow.document.write(response.data.report_content);
+                    printWindow.document.close();
+                    
+                    // 等待内容加载完成后打印
+                    printWindow.onload = function() {
+                        setTimeout(() => {
+                            printWindow.print();
+                        }, 500);
+                    };
+                } else {
+                    alert('报告内容为空，无法打印');
+                }
+            } catch (error) {
+                alert('获取报告失败: ' + (error.response?.data?.error || error.message));
+            }
+        }
+        
+        // 重新生成报告（包含签名）
+        async function regenerateReport(reportId, applicationId) {
+            if (!confirm('确定要重新生成此报告吗？这将使用新格式并包含所有签名。')) {
+                return;
+            }
+            
+            try {
+                // 显示加载状态
+                const btn = event.target;
+                const originalText = btn.textContent;
+                btn.textContent = '⏳ 处理中...';
+                btn.disabled = true;
+                
+                // 获取原报告信息
+                const reportResponse = await apiClient.request(`/resignation-reports/${reportId}`);
+                const report = reportResponse.data;
+                
+                // 删除旧报告
+                await apiClient.request(`/resignation-reports/${reportId}`, {
+                    method: 'DELETE'
+                });
+                
+                // 重新创建报告
+                const createResponse = await apiClient.request('/resignation-reports', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        application_id: applicationId,
+                        work_summary: report.work_summary || '工作总结',
+                        unfinished_tasks: report.unfinished_tasks || '未完成事项',
+                        company_property_returned: report.company_property_returned !== false,
+                        financial_settlement: report.financial_settlement !== false
+                    })
+                });
+                
+                if (createResponse.data) {
+                    alert('报告已使用新格式重新生成！');
+                    loadReports(); // 刷新列表
+                }
+                
+                // 恢复按钮状态
+                btn.textContent = originalText;
+                btn.disabled = false;
+                
+            } catch (error) {
+                alert('重新生成失败: ' + (error.response?.data?.error || error.message));
+                // 恢复按钮状态
+                if (event.target) {
+                    event.target.textContent = '重新生成';
+                    event.target.disabled = false;
+                }
+            }
+        }
+        
+        // 加载签名申请列表
+        async function loadSignatureApplications() {
+            try {
+                const response = await apiClient.request('/resignations?status=approved');
+                if (response.data) {
+                    const select = document.getElementById('signatureApplicationSelect');
+                    select.innerHTML = '<option value="">请选择申请</option>' +
+                        response.data.map(app => 
+                            `<option value="${app.uuid}">${app.employee?.name} - ${formatDate(app.resignation_date)}</option>`
+                        ).join('');
+                }
+            } catch (error) {
+                console.error('加载申请列表失败:', error);
+            }
+        }
+        
+        // 加载签名列表
+        async function loadSignatures() {
+            const uuid = document.getElementById('signatureApplicationSelect').value;
+            if (!uuid) return;
+            
+            try {
+                const response = await apiClient.request(`/resignations/${uuid}/signatures`);
+                if (response.data) {
+                    displaySignatures(response.data);
+                }
+            } catch (error) {
+                console.error('加载签名失败:', error);
+            }
+        }
+        
+        // 显示签名列表
+        function displaySignatures(signatures) {
+            const signaturesList = document.getElementById('signaturesList');
+            
+            if (!signatures || signatures.length === 0) {
+                signaturesList.innerHTML = '<p>暂无签名</p>';
+                return;
+            }
+            
+            signaturesList.innerHTML = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>签名类型</th>
+                            <th>签名时间</th>
+                            <th>IP地址</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${signatures.map(sig => `
+                            <tr>
+                                <td>${getSignerType(sig.signer_type)}</td>
+                                <td>${formatDateTime(sig.signed_at)}</td>
+                                <td>${sig.ip_address}</td>
+                                <td>
+                                    <button class="btn" onclick="viewSignature('${sig.signature_data}')">查看</button>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+        }
+        
+        // 查看签名
+        function viewSignature(signatureData) {
+            const modalTitle = document.getElementById('modalTitle');
+            const modalBody = document.getElementById('modalBody');
+            
+            modalTitle.textContent = '签名预览';
+            modalBody.innerHTML = `<img src="${signatureData}" style="max-width: 100%; border: 1px solid #ddd;">`;
+            
+            document.getElementById('modal').style.display = 'block';
+        }
+        
+        // 关闭模态框
+        function closeModal() {
+            document.getElementById('modal').style.display = 'none';
+        }
+        
+        // 工具函数
+        function getResignationType(type) {
+            const types = {
+                'voluntary': '主动离职',
+                'dismissal': '辞退',
+                'contract_expiry': '合同到期'
+            };
+            return types[type] || type;
+        }
+        
+        function getStatusText(status) {
+            const statuses = {
+                'draft': '草稿',
+                'submitted': '已提交',
+                'approved': '已批准',
+                'rejected': '已驳回',
+                'completed': '已完成'
+            };
+            return statuses[status] || status;
+        }
+        
+        function getSignerType(type) {
+            const types = {
+                'employee': '员工',
+                'hr': 'HR',
+                'manager': '主管'
+            };
+            return types[type] || type;
+        }
+        
+        function formatDate(dateStr) {
+            if (!dateStr) return '';
+            const date = new Date(dateStr);
+            return date.toLocaleDateString('zh-CN');
+        }
+        
+        function formatDateTime(dateStr) {
+            if (!dateStr) return '';
+            const date = new Date(dateStr);
+            return date.toLocaleString('zh-CN');
+        }
+        
+        // 点击模态框外部关闭
+        window.onclick = function(event) {
+            const modal = document.getElementById('modal');
+            if (event.target === modal) {
+                closeModal();
+            }
+        }
+    </script>
+</body>
+</html>

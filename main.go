@@ -93,6 +93,68 @@ type PayrollNotification struct {
 	CreatedAt time.Time  `json:"created_at"`
 }
 
+// ResignationApplication 离职申请表
+type ResignationApplication struct {
+	ID                uint       `json:"id" gorm:"primaryKey"`
+	UUID              string     `json:"uuid" gorm:"uniqueIndex;size:36"`
+	EmployeeID        uint       `json:"employee_id"`
+	Employee          Employee   `json:"employee" gorm:"foreignKey:EmployeeID"`
+	ResignationType   string     `json:"resignation_type"`   // voluntary（主动离职）, dismissal（辞退）, contract_expiry（合同到期）
+	ResignationDate   time.Time  `json:"resignation_date"`   // 申请离职日期
+	LastWorkingDate   time.Time  `json:"last_working_date"`  // 最后工作日
+	Reason            string     `json:"reason" gorm:"type:text"`              // 离职原因
+	HandoverNotes     string     `json:"handover_notes" gorm:"type:text"`      // 工作交接说明
+	Status            string     `json:"status" gorm:"default:draft"`          // draft, submitted, approved, rejected, completed
+	ApprovedBy        *uint      `json:"approved_by"`        // 审批人ID
+	ApprovedAt        *time.Time `json:"approved_at"`        // 审批时间
+	ApprovalComments  string     `json:"approval_comments" gorm:"type:text"`   // 审批意见
+	CreatedAt         time.Time  `json:"created_at"`
+	UpdatedAt         time.Time  `json:"updated_at"`
+}
+
+// ResignationReport 离职报告
+type ResignationReport struct {
+	ID                      uint                   `json:"id" gorm:"primaryKey"`
+	ApplicationID           uint                   `json:"application_id"`
+	Application             ResignationApplication `json:"application" gorm:"foreignKey:ApplicationID"`
+	ReportContent           string                 `json:"report_content" gorm:"type:text"`     // 报告内容（HTML格式）
+	WorkSummary             string                 `json:"work_summary" gorm:"type:text"`       // 工作总结
+	UnfinishedTasks         string                 `json:"unfinished_tasks" gorm:"type:text"`   // 未完成事项
+	CompanyPropertyReturned bool                   `json:"company_property_returned"`           // 公司财产是否已归还
+	FinancialSettlement     bool                   `json:"financial_settlement"`                // 财务是否已结清
+	GeneratedAt             time.Time              `json:"generated_at"`
+	CreatedAt               time.Time              `json:"created_at"`
+	UpdatedAt               time.Time              `json:"updated_at"`
+}
+
+// ResignationSignature 离职文件签名
+type ResignationSignature struct {
+	ID            uint                   `json:"id" gorm:"primaryKey"`
+	ApplicationID uint                   `json:"application_id"`
+	Application   ResignationApplication `json:"application" gorm:"foreignKey:ApplicationID"`
+	SignerType    string                 `json:"signer_type"`    // employee（员工）, hr（人事）, manager（主管）
+	SignerID      uint                   `json:"signer_id"`      // 签名人ID
+	SignatureData string                 `json:"signature_data" gorm:"type:text"` // Base64签名图片
+	SignatureHash string                 `json:"signature_hash"` // 签名哈希值
+	IPAddress     string                 `json:"ip_address"`
+	UserAgent     string                 `json:"user_agent"`
+	DeviceInfo    string                 `json:"device_info"`
+	SignedAt      time.Time              `json:"signed_at"`
+	CreatedAt     time.Time              `json:"created_at"`
+}
+
+// ResignationSignToken 签名令牌表
+type ResignationSignToken struct {
+	ID            uint      `json:"id" gorm:"primaryKey"`
+	ApplicationID uint      `json:"application_id"`
+	SignerType    string    `json:"signer_type"`     // employee, hr, manager
+	Token         string    `json:"token" gorm:"uniqueIndex;size:64"` // 唯一令牌
+	Used          bool      `json:"used" gorm:"default:false"`        // 是否已使用
+	ExpiresAt     time.Time `json:"expires_at"`      // 过期时间
+	CreatedAt     time.Time `json:"created_at"`
+	UsedAt        *time.Time `json:"used_at"`        // 使用时间
+}
+
 type CreateEmployeeRequest struct {
 	Name       string `json:"name" binding:"required"`
 	EmployeeNo string `json:"employee_no" binding:"required"`
@@ -124,6 +186,44 @@ type SignPayrollRequest struct {
 type PublishPayrollRequest struct {
 	PayrollUUIDs    []string `json:"payroll_ids" binding:"required"` // 使用UUID列表
 	NotifyEmployees bool     `json:"notify_employees"`
+}
+
+// CreateResignationRequest 创建离职申请请求
+type CreateResignationRequest struct {
+	EmployeeID        uint      `json:"employee_id" binding:"required"`
+	ResignationType   string    `json:"resignation_type" binding:"required"`
+	ResignationDate   time.Time `json:"resignation_date" binding:"required"`
+	LastWorkingDate   time.Time `json:"last_working_date" binding:"required"`
+	Reason            string    `json:"reason" binding:"required"`
+	HandoverNotes     string    `json:"handover_notes"`
+}
+
+// UpdateResignationRequest 更新离职申请请求
+type UpdateResignationRequest struct {
+	ResignationType   string    `json:"resignation_type"`
+	ResignationDate   time.Time `json:"resignation_date"`
+	LastWorkingDate   time.Time `json:"last_working_date"`
+	Reason            string    `json:"reason"`
+	HandoverNotes     string    `json:"handover_notes"`
+	Status            string    `json:"status"`
+	ApprovalComments  string    `json:"approval_comments"`
+}
+
+// CreateResignationReportRequest 创建离职报告请求
+type CreateResignationReportRequest struct {
+	ApplicationID           uint   `json:"application_id" binding:"required"`
+	WorkSummary             string `json:"work_summary" binding:"required"`
+	UnfinishedTasks         string `json:"unfinished_tasks"`
+	CompanyPropertyReturned bool   `json:"company_property_returned"`
+	FinancialSettlement     bool   `json:"financial_settlement"`
+}
+
+// SignResignationRequest 签署离职文件请求
+type SignResignationRequest struct {
+	ApplicationID string `json:"application_id" binding:"required"`
+	SignerType    string `json:"signer_type" binding:"required"` // employee, hr, manager
+	SignatureData string `json:"signature_data" binding:"required"`
+	DeviceInfo    string `json:"device_info"`
 }
 
 // 管理员用户
@@ -158,7 +258,7 @@ type JWTClaims struct {
 }
 
 var db *gorm.DB
-var jwtSecret = []byte("easysalary-jwt-secret-key-2025") // 实际部署时应该使用环境变量
+var jwtSecret = []byte("payroll-jwt-secret-key-2025") // 实际部署时应该使用环境变量
 
 func initDB() {
 	var err error
@@ -167,7 +267,18 @@ func initDB() {
 		log.Fatal("Failed to connect to database:", err)
 	}
 
-	err = db.AutoMigrate(&Employee{}, &PayrollTemplate{}, &Payroll{}, &PayrollSignature{}, &PayrollNotification{}, &AdminUser{})
+	err = db.AutoMigrate(
+		&Employee{}, 
+		&PayrollTemplate{}, 
+		&Payroll{}, 
+		&PayrollSignature{}, 
+		&PayrollNotification{}, 
+		&AdminUser{},
+		&ResignationApplication{},
+		&ResignationReport{},
+		&ResignationSignature{},
+		&ResignationSignToken{},
+	)
 	if err != nil {
 		log.Fatal("Failed to migrate database:", err)
 	}
@@ -257,6 +368,14 @@ func setupRoutes() *gin.Engine {
 		api.GET("/payrolls/employee/:employee_id", getEmployeePayrolls)
 		api.POST("/payrolls/sign", signPayroll)
 		api.GET("/payrolls/:id/signature", getPayrollSignature)
+		
+		// IP地址获取接口（无需鉴权）
+		api.GET("/client-ip", getClientIP)
+		
+		// 离职签名相关的公开路由（无需鉴权）
+		api.GET("/resignations/:id", getResignation)  // 公开查看离职申请（用于签名页面）
+		api.POST("/resignations/sign", signResignation)  // 公开签名接口
+		api.GET("/resignations/:id/signatures", getResignationSignatures)  // 公开查看签名列表
 
 		// 需要鉴权的管理员路由
 		admin := api.Group("/")
@@ -281,6 +400,23 @@ func setupRoutes() *gin.Engine {
 			admin.POST("/payrolls/publish", publishPayrolls)
 			admin.GET("/notifications", getNotifications)
 			admin.POST("/notifications/resend", resendNotification)
+
+			// 离职管理路由
+			admin.GET("/resignations", getResignations)
+			admin.POST("/resignations", createResignation)
+			// admin.GET("/resignations/:id", getResignation)  // 已移到公开路由
+			admin.PUT("/resignations/:id", updateResignation)
+			admin.DELETE("/resignations/:id", deleteResignation)
+			admin.POST("/resignations/:id/approve", approveResignation)
+			admin.POST("/resignations/:id/reject", rejectResignation)
+			admin.POST("/resignations/:id/generate-sign-token", generateSignToken)  // 生成签名令牌
+			
+			// 离职报告路由
+			admin.GET("/resignation-reports", getResignationReports)
+			admin.POST("/resignation-reports", createResignationReport)
+			admin.GET("/resignation-reports/:id", getResignationReport)
+			admin.PUT("/resignation-reports/:id", updateResignationReport)
+			admin.DELETE("/resignation-reports/:id", deleteResignationReport)
 		}
 	}
 
@@ -1001,7 +1137,7 @@ func calculateProratedPayroll(data map[string]interface{}, ratio float64) (total
 
 // 密码哈希
 func hashPassword(password string) string {
-	hash := md5.Sum([]byte(password + "easysalary-salt"))
+	hash := md5.Sum([]byte(password + "payroll-salt"))
 	return hex.EncodeToString(hash[:])
 }
 
@@ -1023,7 +1159,7 @@ func generateJWTToken(user AdminUser, remember bool) (string, time.Time, error) 
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(expiresAt),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
-			Issuer:    "easysalary",
+			Issuer:    "payroll",
 		},
 	}
 
@@ -1125,6 +1261,101 @@ func sendPayrollNotification(payroll Payroll) bool {
 	return success
 }
 
+// 获取客户端IP地址
+func getClientIP(c *gin.Context) {
+	// 尝试多种方法获取真实IP地址
+	var clientIP string
+	
+	// 1. 检查 X-Forwarded-For 头 (通过代理/负载均衡器)
+	forwarded := c.GetHeader("X-Forwarded-For")
+	if forwarded != "" {
+		// X-Forwarded-For 可能包含多个IP，取第一个
+		ips := strings.Split(forwarded, ",")
+		clientIP = strings.TrimSpace(ips[0])
+	}
+	
+	// 2. 检查 X-Real-IP 头 (Nginx代理常用)
+	if clientIP == "" {
+		clientIP = c.GetHeader("X-Real-IP")
+	}
+	
+	// 3. 检查 CF-Connecting-IP 头 (Cloudflare)
+	if clientIP == "" {
+		clientIP = c.GetHeader("CF-Connecting-IP")
+	}
+	
+	// 4. 使用RemoteAddr作为最后选择
+	if clientIP == "" {
+		clientIP = c.ClientIP()
+	}
+	
+	// 5. 如果是本地环境，提供友好的显示
+	if clientIP == "::1" || clientIP == "127.0.0.1" {
+		clientIP = "本地环境"
+	}
+	
+	// 获取用户代理和设备信息
+	userAgent := c.GetHeader("User-Agent")
+	deviceInfo := getDeviceInfoFromUserAgent(userAgent)
+	
+	c.JSON(http.StatusOK, gin.H{
+		"ip_address":  clientIP,
+		"user_agent":  userAgent,
+		"device_info": deviceInfo,
+		"method":      "server_detection",
+		"headers": gin.H{
+			"x_forwarded_for": c.GetHeader("X-Forwarded-For"),
+			"x_real_ip":       c.GetHeader("X-Real-IP"),
+			"cf_connecting_ip": c.GetHeader("CF-Connecting-IP"),
+			"remote_addr":     c.Request.RemoteAddr,
+		},
+	})
+}
+
+// 从User-Agent解析设备信息
+func getDeviceInfoFromUserAgent(userAgent string) string {
+	if userAgent == "" {
+		return "未知设备"
+	}
+	
+	userAgentLower := strings.ToLower(userAgent)
+	
+	// 检测移动设备
+	if strings.Contains(userAgentLower, "android") {
+		return "Android设备"
+	}
+	if strings.Contains(userAgentLower, "iphone") {
+		return "iPhone设备"
+	}
+	if strings.Contains(userAgentLower, "ipad") {
+		return "iPad设备"
+	}
+	if strings.Contains(userAgentLower, "ipod") {
+		return "iPod设备"
+	}
+	
+	// 检测桌面系统
+	if strings.Contains(userAgentLower, "windows") {
+		return "Windows设备"
+	}
+	if strings.Contains(userAgentLower, "macintosh") || strings.Contains(userAgentLower, "mac os x") {
+		return "Mac设备"
+	}
+	if strings.Contains(userAgentLower, "linux") && !strings.Contains(userAgentLower, "android") {
+		return "Linux设备"
+	}
+	
+	// 检测其他设备
+	if strings.Contains(userAgentLower, "mobile") {
+		return "移动设备"
+	}
+	if strings.Contains(userAgentLower, "tablet") {
+		return "平板设备"
+	}
+	
+	return "未知设备"
+}
+
 // 生成UUID
 func generateUUID() string {
 	b := make([]byte, 16)
@@ -1135,6 +1366,733 @@ func generateUUID() string {
 	uuid := fmt.Sprintf("%x-%x-%x-%x-%x",
 		b[0:4], b[4:6], b[6:8], b[8:10], b[10:])
 	return uuid
+}
+
+// ========== 离职管理相关API处理函数 ==========
+
+// 获取离职申请列表
+func getResignations(c *gin.Context) {
+	var resignations []ResignationApplication
+	query := db.Preload("Employee")
+	
+	// 可选过滤参数
+	if status := c.Query("status"); status != "" {
+		query = query.Where("status = ?", status)
+	}
+	if employeeID := c.Query("employee_id"); employeeID != "" {
+		query = query.Where("employee_id = ?", employeeID)
+	}
+	
+	if err := query.Find(&resignations).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "获取离职申请失败"})
+		return
+	}
+	
+	c.JSON(http.StatusOK, gin.H{"data": resignations})
+}
+
+// 创建离职申请
+func createResignation(c *gin.Context) {
+	var req CreateResignationRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "请求参数错误"})
+		return
+	}
+	
+	// 检查员工是否存在
+	var employee Employee
+	if err := db.First(&employee, req.EmployeeID).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "员工不存在"})
+		return
+	}
+	
+	// 检查是否已有未完成的离职申请
+	var existingApp ResignationApplication
+	if err := db.Where("employee_id = ? AND status NOT IN ('completed', 'rejected')", req.EmployeeID).
+		First(&existingApp).Error; err == nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "该员工已有未完成的离职申请"})
+		return
+	}
+	
+	resignation := ResignationApplication{
+		UUID:              generateUUID(),
+		EmployeeID:        req.EmployeeID,
+		ResignationType:   req.ResignationType,
+		ResignationDate:   req.ResignationDate,
+		LastWorkingDate:   req.LastWorkingDate,
+		Reason:            req.Reason,
+		HandoverNotes:     req.HandoverNotes,
+		Status:            "draft",
+	}
+	
+	if err := db.Create(&resignation).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "创建离职申请失败"})
+		return
+	}
+	
+	// 加载关联数据
+	db.Preload("Employee").First(&resignation, resignation.ID)
+	
+	c.JSON(http.StatusOK, gin.H{
+		"message": "离职申请创建成功",
+		"data":    resignation,
+	})
+}
+
+// 获取单个离职申请
+func getResignation(c *gin.Context) {
+	id := c.Param("id")
+	
+	var resignation ResignationApplication
+	if err := db.Preload("Employee").First(&resignation, "uuid = ?", id).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "离职申请不存在"})
+		return
+	}
+	
+	c.JSON(http.StatusOK, gin.H{"data": resignation})
+}
+
+// 更新离职申请
+func updateResignation(c *gin.Context) {
+	id := c.Param("id")
+	
+	var resignation ResignationApplication
+	if err := db.First(&resignation, "uuid = ?", id).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "离职申请不存在"})
+		return
+	}
+	
+	var req UpdateResignationRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "请求参数错误"})
+		return
+	}
+	
+	// 只有草稿状态才能修改大部分信息
+	if resignation.Status != "draft" && resignation.Status != "submitted" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "当前状态不允许修改"})
+		return
+	}
+	
+	// 更新字段
+	updates := map[string]interface{}{}
+	if req.ResignationType != "" {
+		updates["resignation_type"] = req.ResignationType
+	}
+	if !req.ResignationDate.IsZero() {
+		updates["resignation_date"] = req.ResignationDate
+	}
+	if !req.LastWorkingDate.IsZero() {
+		updates["last_working_date"] = req.LastWorkingDate
+	}
+	if req.Reason != "" {
+		updates["reason"] = req.Reason
+	}
+	if req.HandoverNotes != "" {
+		updates["handover_notes"] = req.HandoverNotes
+	}
+	if req.Status != "" {
+		updates["status"] = req.Status
+	}
+	
+	if err := db.Model(&resignation).Updates(updates).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "更新离职申请失败"})
+		return
+	}
+	
+	// 重新加载数据
+	db.Preload("Employee").First(&resignation, resignation.ID)
+	
+	c.JSON(http.StatusOK, gin.H{
+		"message": "离职申请更新成功",
+		"data":    resignation,
+	})
+}
+
+// 删除离职申请
+func deleteResignation(c *gin.Context) {
+	id := c.Param("id")
+	
+	var resignation ResignationApplication
+	if err := db.First(&resignation, "uuid = ?", id).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "离职申请不存在"})
+		return
+	}
+	
+	// 只有草稿状态才能删除
+	if resignation.Status != "draft" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "只能删除草稿状态的离职申请"})
+		return
+	}
+	
+	if err := db.Delete(&resignation).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "删除离职申请失败"})
+		return
+	}
+	
+	c.JSON(http.StatusOK, gin.H{"message": "离职申请已删除"})
+}
+
+// 审批通过离职申请
+func approveResignation(c *gin.Context) {
+	id := c.Param("id")
+	
+	var resignation ResignationApplication
+	if err := db.First(&resignation, "uuid = ?", id).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "离职申请不存在"})
+		return
+	}
+	
+	if resignation.Status != "submitted" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "只能审批已提交的离职申请"})
+		return
+	}
+	
+	var req struct {
+		ApprovalComments string `json:"approval_comments"`
+	}
+	c.ShouldBindJSON(&req)
+	
+	// 从JWT获取当前用户ID（这里简化处理）
+	userID := uint(1) // 实际应从context中获取
+	now := time.Now()
+	
+	updates := map[string]interface{}{
+		"status":            "approved",
+		"approved_by":       userID,
+		"approved_at":       now,
+		"approval_comments": req.ApprovalComments,
+	}
+	
+	if err := db.Model(&resignation).Updates(updates).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "审批失败"})
+		return
+	}
+	
+	// 更新员工状态
+	db.Model(&Employee{}).Where("id = ?", resignation.EmployeeID).
+		Updates(map[string]interface{}{
+			"status":     "resigned",
+			"leave_date": resignation.LastWorkingDate,
+		})
+	
+	c.JSON(http.StatusOK, gin.H{"message": "离职申请已批准"})
+}
+
+// 驳回离职申请
+func rejectResignation(c *gin.Context) {
+	id := c.Param("id")
+	
+	var resignation ResignationApplication
+	if err := db.First(&resignation, "uuid = ?", id).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "离职申请不存在"})
+		return
+	}
+	
+	if resignation.Status != "submitted" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "只能驳回已提交的离职申请"})
+		return
+	}
+	
+	var req struct {
+		ApprovalComments string `json:"approval_comments"`
+	}
+	c.ShouldBindJSON(&req)
+	
+	updates := map[string]interface{}{
+		"status":            "rejected",
+		"approval_comments": req.ApprovalComments,
+	}
+	
+	if err := db.Model(&resignation).Updates(updates).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "驳回失败"})
+		return
+	}
+	
+	c.JSON(http.StatusOK, gin.H{"message": "离职申请已驳回"})
+}
+
+// 获取离职报告列表
+func getResignationReports(c *gin.Context) {
+	var reports []ResignationReport
+	query := db.Preload("Application").Preload("Application.Employee")
+	
+	if err := query.Find(&reports).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "获取离职报告失败"})
+		return
+	}
+	
+	c.JSON(http.StatusOK, gin.H{"data": reports})
+}
+
+// 创建离职报告
+func createResignationReport(c *gin.Context) {
+	var req CreateResignationReportRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "请求参数错误"})
+		return
+	}
+	
+	// 检查离职申请是否存在且已批准
+	var application ResignationApplication
+	if err := db.First(&application, req.ApplicationID).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "离职申请不存在"})
+		return
+	}
+	
+	// 允许已批准和已完成状态的申请生成报告
+	if application.Status != "approved" && application.Status != "completed" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "离职申请尚未批准，当前状态: " + application.Status})
+		return
+	}
+	
+	// 生成报告HTML内容
+	reportContent := generateResignationReportHTML(application, req)
+	
+	report := ResignationReport{
+		ApplicationID:           req.ApplicationID,
+		ReportContent:           reportContent,
+		WorkSummary:             req.WorkSummary,
+		UnfinishedTasks:         req.UnfinishedTasks,
+		CompanyPropertyReturned: req.CompanyPropertyReturned,
+		FinancialSettlement:     req.FinancialSettlement,
+		GeneratedAt:             time.Now(),
+	}
+	
+	if err := db.Create(&report).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "创建离职报告失败"})
+		return
+	}
+	
+	c.JSON(http.StatusOK, gin.H{
+		"message": "离职报告创建成功",
+		"data":    report,
+	})
+}
+
+// 获取离职报告
+func getResignationReport(c *gin.Context) {
+	id := c.Param("id")
+	
+	var report ResignationReport
+	if err := db.Preload("Application").Preload("Application.Employee").
+		First(&report, id).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "离职报告不存在"})
+		return
+	}
+	
+	c.JSON(http.StatusOK, gin.H{"data": report})
+}
+
+// 更新离职报告
+func updateResignationReport(c *gin.Context) {
+	id := c.Param("id")
+	
+	var report ResignationReport
+	if err := db.First(&report, id).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "离职报告不存在"})
+		return
+	}
+	
+	var req CreateResignationReportRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "请求参数错误"})
+		return
+	}
+	
+	updates := map[string]interface{}{
+		"work_summary":              req.WorkSummary,
+		"unfinished_tasks":          req.UnfinishedTasks,
+		"company_property_returned": req.CompanyPropertyReturned,
+		"financial_settlement":      req.FinancialSettlement,
+	}
+	
+	if err := db.Model(&report).Updates(updates).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "更新离职报告失败"})
+		return
+	}
+	
+	c.JSON(http.StatusOK, gin.H{
+		"message": "离职报告更新成功",
+		"data":    report,
+	})
+}
+
+// 删除离职报告
+func deleteResignationReport(c *gin.Context) {
+	id := c.Param("id")
+	
+	var report ResignationReport
+	if err := db.First(&report, id).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "离职报告不存在"})
+		return
+	}
+	
+	if err := db.Delete(&report).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "删除离职报告失败"})
+		return
+	}
+	
+	c.JSON(http.StatusOK, gin.H{
+		"message": "离职报告删除成功",
+	})
+}
+
+// 生成签名令牌
+func generateSignToken(c *gin.Context) {
+	id := c.Param("id")
+	
+	var req struct {
+		SignerType string `json:"signer_type" binding:"required"` // employee, hr, manager
+	}
+	
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "请求参数错误"})
+		return
+	}
+	
+	// 检查离职申请
+	var application ResignationApplication
+	if err := db.First(&application, "uuid = ?", id).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "离职申请不存在"})
+		return
+	}
+	
+	// 检查是否已经生成过令牌
+	var existingToken ResignationSignToken
+	if err := db.Where("application_id = ? AND signer_type = ? AND used = false AND expires_at > ?", 
+		application.ID, req.SignerType, time.Now()).First(&existingToken).Error; err == nil {
+		// 如果存在有效令牌，返回该令牌
+		signUrl := fmt.Sprintf("/web/sign-resignation.html?id=%s&token=%s&type=%s", 
+			application.UUID, existingToken.Token, req.SignerType)
+		c.JSON(http.StatusOK, gin.H{
+			"message": "签名链接已存在",
+			"url": signUrl,
+			"token": existingToken.Token,
+			"expires_at": existingToken.ExpiresAt,
+		})
+		return
+	}
+	
+	// 生成新的令牌
+	token := generateSecureToken()
+	expiresAt := time.Now().Add(7 * 24 * time.Hour) // 7天有效期
+	
+	signToken := ResignationSignToken{
+		ApplicationID: application.ID,
+		SignerType:    req.SignerType,
+		Token:         token,
+		ExpiresAt:     expiresAt,
+		Used:          false,
+	}
+	
+	if err := db.Create(&signToken).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "生成令牌失败"})
+		return
+	}
+	
+	signUrl := fmt.Sprintf("/web/sign-resignation.html?id=%s&token=%s&type=%s", 
+		application.UUID, token, req.SignerType)
+	
+	c.JSON(http.StatusOK, gin.H{
+		"message": "签名链接生成成功",
+		"url": signUrl,
+		"token": token,
+		"expires_at": expiresAt,
+	})
+}
+
+// 生成安全令牌
+func generateSecureToken() string {
+	b := make([]byte, 32)
+	rand.Read(b)
+	return base64.URLEncoding.EncodeToString(b)
+}
+
+// 签署离职文件
+func signResignation(c *gin.Context) {
+	var req SignResignationRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "请求参数错误"})
+		return
+	}
+	
+	// 添加令牌验证
+	token := c.Query("token")
+	signerType := c.Query("type")
+	
+	if token != "" && signerType != "" {
+		// 验证令牌
+		var signToken ResignationSignToken
+		if err := db.Where("token = ? AND signer_type = ? AND used = false AND expires_at > ?", 
+			token, signerType, time.Now()).First(&signToken).Error; err != nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "无效或过期的签名令牌"})
+			return
+		}
+		
+		// 获取申请信息
+		var application ResignationApplication
+		if err := db.First(&application, signToken.ApplicationID).Error; err != nil {
+			c.JSON(http.StatusNotFound, gin.H{"error": "离职申请不存在"})
+			return
+		}
+		
+		// 标记令牌为已使用
+		now := time.Now()
+		db.Model(&signToken).Updates(map[string]interface{}{
+			"used": true,
+			"used_at": now,
+		})
+		
+		req.ApplicationID = application.UUID
+		req.SignerType = signerType
+	}
+	
+	// 检查离职申请
+	var application ResignationApplication
+	if err := db.First(&application, "uuid = ?", req.ApplicationID).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "离职申请不存在"})
+		return
+	}
+	
+	// 检查是否已签名
+	var existingSignature ResignationSignature
+	if err := db.Where("application_id = ? AND signer_type = ?", application.ID, req.SignerType).
+		First(&existingSignature).Error; err == nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "该类型签名已存在"})
+		return
+	}
+	
+	// 创建签名记录
+	signature := ResignationSignature{
+		ApplicationID: application.ID,
+		SignerType:    req.SignerType,
+		SignerID:      1, // 实际应根据签名类型确定
+		SignatureData: req.SignatureData,
+		SignatureHash: generateSignatureHash(req.SignatureData),
+		IPAddress:     c.ClientIP(),
+		UserAgent:     c.GetHeader("User-Agent"),
+		DeviceInfo:    req.DeviceInfo,
+		SignedAt:      time.Now(),
+	}
+	
+	if err := db.Create(&signature).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "保存签名失败"})
+		return
+	}
+	
+	// 检查是否所有必要的签名都已完成
+	var signatureCount int64
+	db.Model(&ResignationSignature{}).Where("application_id = ?", application.ID).Count(&signatureCount)
+	
+	// 如果员工、HR和主管都已签名，更新申请状态为完成
+	if signatureCount >= 3 {
+		db.Model(&application).Update("status", "completed")
+	}
+	
+	c.JSON(http.StatusOK, gin.H{
+		"message": "签名成功",
+		"data":    signature,
+	})
+}
+
+// 获取离职签名列表
+func getResignationSignatures(c *gin.Context) {
+	id := c.Param("id")
+	
+	var application ResignationApplication
+	if err := db.First(&application, "uuid = ?", id).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "离职申请不存在"})
+		return
+	}
+	
+	var signatures []ResignationSignature
+	if err := db.Where("application_id = ?", application.ID).Find(&signatures).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "获取签名失败"})
+		return
+	}
+	
+	c.JSON(http.StatusOK, gin.H{"data": signatures})
+}
+
+// 生成离职报告HTML
+func generateResignationReportHTML(app ResignationApplication, req CreateResignationReportRequest) string {
+	var employee Employee
+	db.First(&employee, app.EmployeeID)
+	
+	// 获取签名信息
+	var signatures []ResignationSignature
+	db.Where("application_id = ?", app.ID).Find(&signatures)
+	
+	// 构建签名显示HTML
+	signatureHTML := ""
+	signerTypes := []struct {
+		Type string
+		Name string
+	}{
+		{"employee", "员工本人"},
+		{"hr", "人力资源部"},
+		{"manager", "部门主管"},
+	}
+	
+	for _, signer := range signerTypes {
+		found := false
+		for _, sig := range signatures {
+			if sig.SignerType == signer.Type {
+				signatureHTML += fmt.Sprintf(`
+				<div style="margin: 15px 0; padding: 10px; background: #f0f0f0; border-radius: 5px;">
+					<p><strong>%s签名:</strong></p>
+					<img src="%s" style="max-width: 300px; height: 100px; border: 1px solid #ddd; background: white; padding: 5px;">
+					<p style="color: #666; font-size: 12px;">签名时间: %s</p>
+				</div>`, 
+					signer.Name, 
+					sig.SignatureData,
+					sig.SignedAt.Format("2006-01-02 15:04:05"))
+				found = true
+				break
+			}
+		}
+		if !found {
+			signatureHTML += fmt.Sprintf(`
+			<div style="margin: 15px 0; padding: 10px; background: #f9f9f9; border-radius: 5px;">
+				<p><strong>%s签名:</strong> <span style="color: #999;">待签名</span></p>
+			</div>`, signer.Name)
+		}
+	}
+	
+	// 转换离职类型为中文
+	resignationType := ""
+	switch app.ResignationType {
+	case "voluntary":
+		resignationType = "主动离职"
+	case "dismissal":
+		resignationType = "辞退"
+	case "contract_expiry":
+		resignationType = "合同到期"
+	default:
+		resignationType = app.ResignationType
+	}
+	
+	html := fmt.Sprintf(`
+	<html>
+	<head>
+		<title>离职报告</title>
+		<style>
+			body { 
+				font-family: 'Microsoft YaHei', Arial, sans-serif; 
+				margin: 20px; 
+				line-height: 1.6;
+			}
+			h1 { 
+				color: #333; 
+				text-align: center;
+				border-bottom: 2px solid #667eea;
+				padding-bottom: 10px;
+			}
+			.section { 
+				margin: 25px 0; 
+				padding: 15px;
+				background: #f8f9fa;
+				border-radius: 8px;
+			}
+			.label { 
+				font-weight: bold; 
+				color: #555;
+				display: inline-block;
+				width: 120px;
+			}
+			.info-row {
+				margin: 8px 0;
+			}
+			h2 {
+				color: #667eea;
+				border-bottom: 1px solid #e0e0e0;
+				padding-bottom: 5px;
+			}
+			.content-box {
+				background: white;
+				padding: 10px;
+				border-radius: 5px;
+				margin-top: 10px;
+			}
+			.signature-section {
+				background: white;
+				padding: 20px;
+				border-radius: 8px;
+				margin-top: 20px;
+			}
+			@media print {
+				body { margin: 10px; }
+				.section { background: white; }
+			}
+		</style>
+	</head>
+	<body>
+		<h1>离职报告</h1>
+		
+		<div class="section">
+			<h2>员工基本信息</h2>
+			<div class="info-row"><span class="label">员工姓名:</span> %s</div>
+			<div class="info-row"><span class="label">员工编号:</span> %s</div>
+			<div class="info-row"><span class="label">部门:</span> %s</div>
+			<div class="info-row"><span class="label">职位:</span> %s</div>
+			<div class="info-row"><span class="label">离职类型:</span> %s</div>
+			<div class="info-row"><span class="label">离职原因:</span> %s</div>
+			<div class="info-row"><span class="label">最后工作日:</span> %s</div>
+		</div>
+		
+		<div class="section">
+			<h2>工作总结</h2>
+			<div class="content-box">%s</div>
+		</div>
+		
+		<div class="section">
+			<h2>未完成事项</h2>
+			<div class="content-box">%s</div>
+		</div>
+		
+		<div class="section">
+			<h2>交接状态</h2>
+			<div class="info-row"><span class="label">公司财产归还:</span> %s</div>
+			<div class="info-row"><span class="label">财务结清:</span> %s</div>
+		</div>
+		
+		<div class="signature-section">
+			<h2>电子签名确认</h2>
+			%s
+		</div>
+		
+		<div style="text-align: center; margin-top: 30px; color: #666; font-size: 12px;">
+			<p>报告生成时间: %s</p>
+		</div>
+	</body>
+	</html>
+	`,
+		employee.Name,
+		employee.EmployeeNo,
+		employee.Department,
+		employee.Position,
+		resignationType,
+		app.Reason,
+		app.LastWorkingDate.Format("2006年01月02日"),
+		req.WorkSummary,
+		req.UnfinishedTasks,
+		boolToString(req.CompanyPropertyReturned),
+		boolToString(req.FinancialSettlement),
+		signatureHTML,
+		time.Now().Format("2006年01月02日 15:04:05"),
+	)
+	
+	return html
+}
+
+
+// bool转字符串
+func boolToString(b bool) string {
+	if b {
+		return "是"
+	}
+	return "否"
 }
 
 func main() {
