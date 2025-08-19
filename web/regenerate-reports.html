@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>重新生成离职报告</title>
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', sans-serif;
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            background: white;
+            border-radius: 15px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+        }
+
+        h1 {
+            color: #333;
+            text-align: center;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+
+        .warning {
+            background: #fff5f5;
+            border: 2px solid #feb2b2;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .warning h3 {
+            color: #c53030;
+            margin-top: 0;
+        }
+
+        .section {
+            margin: 30px 0;
+            padding: 25px;
+            background: #f8f9fa;
+            border-radius: 10px;
+        }
+
+        .report-item {
+            background: white;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s;
+            margin: 5px;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-danger {
+            background: #f56565;
+            color: white;
+        }
+
+        .btn-success {
+            background: #48bb78;
+            color: white;
+        }
+
+        .btn-warning {
+            background: #ed8936;
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .status {
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .status-success {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+
+        .status-error {
+            background: #fed7d7;
+            color: #742a2a;
+        }
+
+        .status-info {
+            background: #bee3f8;
+            color: #2c5282;
+        }
+
+        .status-warning {
+            background: #feebc8;
+            color: #7c2d12;
+        }
+
+        .log {
+            background: #1a202c;
+            color: #68d391;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            max-height: 400px;
+            overflow-y: auto;
+            margin-top: 20px;
+        }
+
+        .progress {
+            width: 100%;
+            height: 30px;
+            background: #e0e0e0;
+            border-radius: 15px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            transition: width 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+
+        .alert-danger {
+            background: #fed7d7;
+            color: #742a2a;
+            border: 1px solid #fc8181;
+        }
+
+        .alert-success {
+            background: #c6f6d5;
+            color: #22543d;
+            border: 1px solid #9ae6b4;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .info-card {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .info-card h4 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .info-card .value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>🔄 重新生成离职报告工具</h1>
+
+        <div class="warning">
+            <h3>⚠️ 重要提示</h3>
+            <p>此工具用于重新生成所有离职报告，使用最新的报告格式。</p>
+            <p>重新生成将：</p>
+            <ul>
+                <li>删除现有报告内容</li>
+                <li>使用新的格式重新生成报告（包括中文离职类型和签名显示）</li>
+                <li>保留所有其他数据（申请信息、签名记录等）</li>
+            </ul>
+        </div>
+
+        <div class="section">
+            <h2>📊 当前报告统计</h2>
+            <div class="info-grid">
+                <div class="info-card">
+                    <h4>总报告数</h4>
+                    <div class="value" id="totalReports">-</div>
+                </div>
+                <div class="info-card">
+                    <h4>需要更新</h4>
+                    <div class="value" id="needUpdate">-</div>
+                </div>
+                <div class="info-card">
+                    <h4>已更新</h4>
+                    <div class="value" id="updated">0</div>
+                </div>
+                <div class="info-card">
+                    <h4>更新失败</h4>
+                    <div class="value" id="failed">0</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🔧 操作选项</h2>
+            <div style="text-align: center;">
+                <button class="btn btn-primary" onclick="loadReports()">
+                    📋 加载报告列表
+                </button>
+                <button class="btn btn-warning" onclick="regenerateAll()">
+                    🔄 重新生成所有报告
+                </button>
+                <button class="btn btn-success" onclick="testNewFormat()">
+                    🧪 测试新格式（创建示例）
+                </button>
+            </div>
+
+            <div class="progress" style="display: none;" id="progressBar">
+                <div class="progress-bar" id="progressBarFill" style="width: 0%">0%</div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>📝 报告列表</h2>
+            <div id="reportsList"></div>
+        </div>
+
+        <div class="section">
+            <h2>📜 操作日志</h2>
+            <div class="log" id="operationLog"></div>
+        </div>
+    </div>
+
+    <script>
+        const apiUrl = '/api/v1';
+        const adminToken = localStorage.getItem('adminToken');
+        let reports = [];
+        let updatedCount = 0;
+        let failedCount = 0;
+
+        function log(message, type = 'info') {
+            const logDiv = document.getElementById('operationLog');
+            const timestamp = new Date().toLocaleTimeString();
+            const color = type === 'error' ? '#fc8181' : type === 'success' ? '#68d391' : '#63b3ed';
+            logDiv.innerHTML += `<div style="color: ${color};">[${timestamp}] ${message}</div>`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        // 加载报告列表
+        async function loadReports() {
+            try {
+                log('正在加载报告列表...');
+                const response = await fetch(`${apiUrl}/resignation-reports`, {
+                    headers: {
+                        'Authorization': `Bearer ${adminToken}`
+                    }
+                });
+
+                if (!response.ok) throw new Error('加载失败');
+
+                const data = await response.json();
+                reports = data.data || [];
+
+                document.getElementById('totalReports').textContent = reports.length;
+                document.getElementById('needUpdate').textContent = reports.length;
+
+                displayReports(reports);
+                log(`成功加载 ${reports.length} 个报告`, 'success');
+
+            } catch (error) {
+                log('加载报告失败: ' + error.message, 'error');
+            }
+        }
+
+        // 显示报告列表
+        function displayReports(reportList) {
+            const container = document.getElementById('reportsList');
+
+            if (reportList.length === 0) {
+                container.innerHTML = '<p style="text-align: center; color: #999;">暂无报告</p>';
+                return;
+            }
+
+            container.innerHTML = reportList.map(report => `
+                <div class="report-item">
+                    <div>
+                        <strong>${report.application?.employee?.name || '未知'}</strong> - 
+                        ${report.application?.employee?.department || '未知部门'}
+                        <span class="status status-info" style="margin-left: 10px;">
+                            ID: ${report.id}
+                        </span>
+                        <span class="status status-warning" style="margin-left: 5px;">
+                            待更新
+                        </span>
+                    </div>
+                    <button class="btn btn-primary btn-sm" onclick="regenerateOne(${report.id})">
+                        重新生成
+                    </button>
+                </div>
+            `).join('');
+        }
+
+        // 重新生成单个报告
+        async function regenerateOne(reportId) {
+            try {
+                log(`正在重新生成报告 ID: ${reportId}...`);
+
+                // 获取报告详情
+                const reportResponse = await fetch(`${apiUrl}/resignation-reports/${reportId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${adminToken}`
+                    }
+                });
+
+                if (!reportResponse.ok) throw new Error('获取报告失败');
+                const reportData = await reportResponse.json();
+                const report = reportData.data;
+
+                // 删除旧报告
+                const deleteResponse = await fetch(`${apiUrl}/resignation-reports/${reportId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${adminToken}`
+                    }
+                });
+
+                if (!deleteResponse.ok) {
+                    log(`无法删除旧报告 ${reportId}，尝试直接更新`, 'warning');
+                }
+
+                // 重新创建报告
+                const createResponse = await fetch(`${apiUrl}/resignation-reports`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${adminToken}`
+                    },
+                    body: JSON.stringify({
+                        application_id: report.application_id,
+                        work_summary: report.work_summary || '工作总结内容',
+                        unfinished_tasks: report.unfinished_tasks || '未完成事项',
+                        company_property_returned: report.company_property_returned !== false,
+                        financial_settlement: report.financial_settlement !== false
+                    })
+                });
+
+                if (!createResponse.ok) {
+                    const error = await createResponse.json();
+                    throw new Error(error.error || '创建失败');
+                }
+
+                const newReport = await createResponse.json();
+                log(`✅ 报告 ${reportId} 重新生成成功，新ID: ${newReport.data.id}`, 'success');
+
+                updatedCount++;
+                document.getElementById('updated').textContent = updatedCount;
+
+                return true;
+
+            } catch (error) {
+                log(`❌ 重新生成报告 ${reportId} 失败: ${error.message}`, 'error');
+                failedCount++;
+                document.getElementById('failed').textContent = failedCount;
+                return false;
+            }
+        }
+
+        // 重新生成所有报告
+        async function regenerateAll() {
+            if (reports.length === 0) {
+                alert('请先加载报告列表');
+                return;
+            }
+
+            if (!confirm(`确定要重新生成所有 ${reports.length} 个报告吗？`)) {
+                return;
+            }
+
+            log('开始批量重新生成报告...', 'info');
+            document.getElementById('progressBar').style.display = 'block';
+
+            updatedCount = 0;
+            failedCount = 0;
+
+            for (let i = 0; i < reports.length; i++) {
+                const report = reports[i];
+                const progress = Math.round((i + 1) / reports.length * 100);
+
+                document.getElementById('progressBarFill').style.width = progress + '%';
+                document.getElementById('progressBarFill').textContent = progress + '%';
+
+                await regenerateOne(report.id);
+
+                // 添加延迟，避免服务器过载
+                await new Promise(resolve => setTimeout(resolve, 500));
+            }
+
+            log(`批量重新生成完成！成功: ${updatedCount}, 失败: ${failedCount}`, 'success');
+
+            // 重新加载列表
+            setTimeout(() => {
+                loadReports();
+            }, 2000);
+        }
+
+        // 测试新格式
+        async function testNewFormat() {
+            try {
+                log('创建测试数据...');
+
+                // 创建测试员工
+                const empResponse = await fetch(`${apiUrl}/employees`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${adminToken}`
+                    },
+                    body: JSON.stringify({
+                        name: '格式测试员工_' + Date.now(),
+                        employee_no: 'FORMAT_TEST_' + Date.now(),
+                        department: '技术部',
+                        position: '前端开发',
+                        email: 'test@example.com',
+                        phone: '13800138000',
+                        join_date: '2020-01-01'
+                    })
+                });
+
+                if (!empResponse.ok) throw new Error('创建员工失败');
+                const empData = await empResponse.json();
+                const employeeId = empData.data.id;
+                log(`创建测试员工成功，ID: ${employeeId}`, 'success');
+
+                // 创建离职申请
+                const resResponse = await fetch(`${apiUrl}/resignations`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${adminToken}`
+                    },
+                    body: JSON.stringify({
+                        employee_id: employeeId,
+                        resignation_type: 'voluntary',
+                        reason: '测试新格式显示',
+                        last_working_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+                    })
+                });
+
+                if (!resResponse.ok) throw new Error('创建申请失败');
+                const resData = await resResponse.json();
+                const applicationUuid = resData.data.uuid;
+                const applicationId = resData.data.id;
+                log(`创建离职申请成功，UUID: ${applicationUuid}`, 'success');
+
+                // 批准申请
+                const approveResponse = await fetch(`${apiUrl}/resignations/${applicationUuid}/approve`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${adminToken}`
+                    },
+                    body: JSON.stringify({
+                        approval_notes: '测试批准'
+                    })
+                });
+
+                if (!approveResponse.ok) throw new Error('批准失败');
+                log('离职申请已批准', 'success');
+
+                // 添加模拟签名
+                const signerTypes = ['employee', 'hr', 'manager'];
+                for (const type of signerTypes) {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = 200;
+                    canvas.height = 100;
+                    const ctx = canvas.getContext('2d');
+                    ctx.fillStyle = 'white';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    ctx.fillStyle = 'black';
+                    ctx.font = '20px Arial';
+                    ctx.fillText(`${type} 签名`, 50, 50);
+                    const signatureData = canvas.toDataURL();
+
+                    const signResponse = await fetch(`${apiUrl}/resignations/sign`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            application_id: applicationUuid,
+                            signer_type: type,
+                            signature_data: signatureData,
+                            device_info: 'Test Device'
+                        })
+                    });
+
+                    if (signResponse.ok) {
+                        log(`${type} 签名添加成功`, 'success');
+                    }
+                }
+
+                // 创建报告
+                const reportResponse = await fetch(`${apiUrl}/resignation-reports`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${adminToken}`
+                    },
+                    body: JSON.stringify({
+                        application_id: applicationId,
+                        work_summary: '测试工作总结：验证新格式是否正确显示中文离职类型和签名内容',
+                        unfinished_tasks: '测试未完成事项：检查所有字段是否正确显示',
+                        company_property_returned: true,
+                        financial_settlement: true
+                    })
+                });
+
+                if (!reportResponse.ok) {
+                    const error = await reportResponse.json();
+                    throw new Error(error.error || '创建报告失败');
+                }
+
+                const reportData = await reportResponse.json();
+                const reportId = reportData.data.id;
+                log(`✅ 测试报告创建成功，ID: ${reportId}`, 'success');
+
+                // 在新窗口打开报告
+                const viewResponse = await fetch(`${apiUrl}/resignation-reports/${reportId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${adminToken}`
+                    }
+                });
+
+                if (viewResponse.ok) {
+                    const viewData = await viewResponse.json();
+                    const report = viewData.data;
+
+                    if (report.report_content) {
+                        const reportWindow = window.open('', '_blank', 'width=900,height=700');
+                        reportWindow.document.write(report.report_content);
+                        reportWindow.document.close();
+                        log('📋 新格式报告已在新窗口打开，请检查内容', 'success');
+
+                        // 验证内容
+                        if (report.report_content.includes('主动离职')) {
+                            log('✅ 离职类型已正确显示为中文', 'success');
+                        } else {
+                            log('❌ 离职类型未显示为中文', 'error');
+                        }
+
+                        if (report.report_content.includes('<img')) {
+                            log('✅ 签名图片已包含在报告中', 'success');
+                        } else {
+                            log('❌ 签名图片未找到', 'error');
+                        }
+                    }
+                }
+
+            } catch (error) {
+                log('测试失败: ' + error.message, 'error');
+            }
+        }
+
+        // 初始化
+        window.addEventListener('DOMContentLoaded', function () {
+            if (!adminToken) {
+                log('未登录，请先登录管理系统', 'error');
+                setTimeout(() => {
+                    window.location.href = '/web/login.html';
+                }, 2000);
+                return;
+            }
+
+            log('工具已就绪', 'success');
+            log('点击"加载报告列表"开始');
+        });
+    </script>
+</body>
+
+</html>

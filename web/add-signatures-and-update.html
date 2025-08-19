@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>添加签名并更新报告</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+        }
+
+        h1 {
+            color: #333;
+            text-align: center;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+
+        .step-section {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 25px;
+        }
+
+        .step-section h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+        }
+
+        .step-number {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            background: #667eea;
+            color: white;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 30px;
+            margin-right: 10px;
+            font-weight: bold;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .info-item {
+            padding: 10px;
+            background: white;
+            border-radius: 5px;
+        }
+
+        .info-label {
+            font-weight: bold;
+            color: #555;
+            display: inline-block;
+            margin-right: 10px;
+        }
+
+        .signature-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .signature-box {
+            background: white;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .signature-box h3 {
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .signature-canvas {
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            cursor: crosshair;
+            background: white;
+            display: block;
+            margin: 0 auto;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s;
+            margin: 5px;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-success {
+            background: #48bb78;
+            color: white;
+        }
+
+        .btn-danger {
+            background: #f56565;
+            color: white;
+        }
+
+        .btn-warning {
+            background: #ed8936;
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .status {
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            font-weight: 500;
+            display: inline-block;
+            margin: 5px;
+        }
+
+        .status-success {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+
+        .status-error {
+            background: #fed7d7;
+            color: #742a2a;
+        }
+
+        .status-info {
+            background: #bee3f8;
+            color: #2c5282;
+        }
+
+        .status-warning {
+            background: #feebc8;
+            color: #7c2d12;
+        }
+
+        .log {
+            background: #1a202c;
+            color: #68d391;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            max-height: 300px;
+            overflow-y: auto;
+            margin-top: 20px;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+
+        .alert-info {
+            background: #bee3f8;
+            color: #2c5282;
+            border: 1px solid #90cdf4;
+        }
+
+        .alert-success {
+            background: #c6f6d5;
+            color: #22543d;
+            border: 1px solid #9ae6b4;
+        }
+
+        .button-group {
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 30px;
+            background: #e0e0e0;
+            border-radius: 15px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            transition: width 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>✍️ 添加签名并更新报告</h1>
+
+        <div class="alert alert-info">
+            <strong>说明：</strong>此工具用于为离职申请添加电子签名，然后重新生成报告以显示签名内容。
+        </div>
+
+        <!-- Step 1: 选择申请 -->
+        <div class="step-section">
+            <h2><span class="step-number">1</span>选择离职申请</h2>
+            <div class="info-grid">
+                <div class="info-item">
+                    <label class="info-label">离职申请：</label>
+                    <select id="applicationSelect" style="padding: 8px; border-radius: 5px; border: 1px solid #ddd;">
+                        <option value="">-- 请选择 --</option>
+                    </select>
+                    <button class="btn btn-primary" onclick="loadApplications()">刷新列表</button>
+                </div>
+                <div class="info-item" id="applicationInfo" style="display: none;">
+                    <p><span class="info-label">员工：</span><span id="employeeName">-</span></p>
+                    <p><span class="info-label">部门：</span><span id="department">-</span></p>
+                    <p><span class="info-label">状态：</span><span id="applicationStatus">-</span></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 2: 检查签名状态 -->
+        <div class="step-section">
+            <h2><span class="step-number">2</span>当前签名状态</h2>
+            <div id="signatureStatus">
+                <p style="color: #999; text-align: center;">请先选择离职申请</p>
+            </div>
+        </div>
+
+        <!-- Step 3: 添加签名 -->
+        <div class="step-section">
+            <h2><span class="step-number">3</span>添加电子签名</h2>
+            <div class="signature-container">
+                <!-- 员工签名 -->
+                <div class="signature-box">
+                    <h3>员工本人签名</h3>
+                    <canvas id="employeeCanvas" class="signature-canvas" width="280" height="150"></canvas>
+                    <div style="margin-top: 10px;">
+                        <button class="btn btn-warning" onclick="clearCanvas('employeeCanvas')">清除</button>
+                        <button class="btn btn-primary" onclick="autoSign('employeeCanvas', '王五')">自动签名</button>
+                        <button class="btn btn-success" onclick="submitSignature('employee')">提交</button>
+                    </div>
+                    <div id="employeeStatus"></div>
+                </div>
+
+                <!-- HR签名 -->
+                <div class="signature-box">
+                    <h3>人力资源部签名</h3>
+                    <canvas id="hrCanvas" class="signature-canvas" width="280" height="150"></canvas>
+                    <div style="margin-top: 10px;">
+                        <button class="btn btn-warning" onclick="clearCanvas('hrCanvas')">清除</button>
+                        <button class="btn btn-primary" onclick="autoSign('hrCanvas', 'HR审核')">自动签名</button>
+                        <button class="btn btn-success" onclick="submitSignature('hr')">提交</button>
+                    </div>
+                    <div id="hrStatus"></div>
+                </div>
+
+                <!-- 主管签名 -->
+                <div class="signature-box">
+                    <h3>部门主管签名</h3>
+                    <canvas id="managerCanvas" class="signature-canvas" width="280" height="150"></canvas>
+                    <div style="margin-top: 10px;">
+                        <button class="btn btn-warning" onclick="clearCanvas('managerCanvas')">清除</button>
+                        <button class="btn btn-primary" onclick="autoSign('managerCanvas', '部门主管')">自动签名</button>
+                        <button class="btn btn-success" onclick="submitSignature('manager')">提交</button>
+                    </div>
+                    <div id="managerStatus"></div>
+                </div>
+            </div>
+
+            <div class="button-group">
+                <button class="btn btn-success" onclick="submitAllSignatures()"
+                    style="font-size: 16px; padding: 12px 30px;">
+                    ✅ 一键添加所有签名
+                </button>
+            </div>
+        </div>
+
+        <!-- Step 4: 更新报告 -->
+        <div class="step-section">
+            <h2><span class="step-number">4</span>更新报告</h2>
+            <div class="button-group">
+                <button class="btn btn-primary" onclick="regenerateReport()" id="regenerateBtn"
+                    style="font-size: 16px; padding: 12px 30px;">
+                    🔄 重新生成报告（包含签名）
+                </button>
+                <button class="btn btn-success" onclick="viewReport()" id="viewReportBtn"
+                    style="display: none; font-size: 16px; padding: 12px 30px;">
+                    📋 查看新报告
+                </button>
+            </div>
+            <div id="reportResult"></div>
+        </div>
+
+        <!-- 操作日志 -->
+        <div class="step-section">
+            <h2>📜 操作日志</h2>
+            <div class="log" id="logContainer"></div>
+        </div>
+    </div>
+
+    <script>
+        const apiUrl = '/api/v1';
+        const adminToken = localStorage.getItem('adminToken');
+        let selectedApplication = null;
+        let currentReportId = null;
+        let newReportId = null;
+        const canvasContexts = {};
+        const isDrawing = {};
+
+        function log(message, type = 'info') {
+            const logDiv = document.getElementById('logContainer');
+            const timestamp = new Date().toLocaleTimeString();
+            const color = type === 'error' ? '#fc8181' : type === 'success' ? '#68d391' : '#63b3ed';
+            logDiv.innerHTML += `<div style="color: ${color};">[${timestamp}] ${message}</div>`;
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        // 初始化画布
+        function initCanvas(canvasId) {
+            const canvas = document.getElementById(canvasId);
+            const ctx = canvas.getContext('2d');
+            canvasContexts[canvasId] = ctx;
+            isDrawing[canvasId] = false;
+
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 2;
+            ctx.lineCap = 'round';
+
+            // 鼠标事件
+            canvas.addEventListener('mousedown', (e) => startDrawing(e, canvasId));
+            canvas.addEventListener('mousemove', (e) => draw(e, canvasId));
+            canvas.addEventListener('mouseup', () => stopDrawing(canvasId));
+            canvas.addEventListener('mouseout', () => stopDrawing(canvasId));
+
+            // 触摸事件
+            canvas.addEventListener('touchstart', (e) => handleTouch(e, canvasId, 'start'));
+            canvas.addEventListener('touchmove', (e) => handleTouch(e, canvasId, 'move'));
+            canvas.addEventListener('touchend', () => stopDrawing(canvasId));
+        }
+
+        function startDrawing(e, canvasId) {
+            isDrawing[canvasId] = true;
+            const canvas = document.getElementById(canvasId);
+            const rect = canvas.getBoundingClientRect();
+            const ctx = canvasContexts[canvasId];
+            ctx.beginPath();
+            ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
+        }
+
+        function draw(e, canvasId) {
+            if (!isDrawing[canvasId]) return;
+            const canvas = document.getElementById(canvasId);
+            const rect = canvas.getBoundingClientRect();
+            const ctx = canvasContexts[canvasId];
+            ctx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
+            ctx.stroke();
+        }
+
+        function stopDrawing(canvasId) {
+            isDrawing[canvasId] = false;
+        }
+
+        function handleTouch(e, canvasId, type) {
+            e.preventDefault();
+            const touch = e.touches[0];
+            const mouseEvent = new MouseEvent(
+                type === 'start' ? 'mousedown' : 'mousemove',
+                {
+                    clientX: touch.clientX,
+                    clientY: touch.clientY
+                }
+            );
+            document.getElementById(canvasId).dispatchEvent(mouseEvent);
+        }
+
+        // 清除画布
+        function clearCanvas(canvasId) {
+            const canvas = document.getElementById(canvasId);
+            const ctx = canvasContexts[canvasId];
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            log(`清除了 ${canvasId} 画布`);
+        }
+
+        // 自动签名
+        function autoSign(canvasId, text) {
+            const canvas = document.getElementById(canvasId);
+            const ctx = canvasContexts[canvasId];
+
+            // 清除画布
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // 设置签名样式
+            ctx.fillStyle = 'black';
+            ctx.font = 'italic 30px cursive';
+            ctx.fillText(text, 50, 80);
+
+            // 添加装饰线
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(40, 100);
+            ctx.quadraticCurveTo(140, 70, 240, 100);
+            ctx.stroke();
+
+            log(`自动生成了 ${text} 的签名`);
+        }
+
+        // 加载申请列表
+        async function loadApplications() {
+            try {
+                log('加载离职申请列表...');
+                const response = await fetch(`${apiUrl}/resignations`, {
+                    headers: {
+                        'Authorization': `Bearer ${adminToken}`
+                    }
+                });
+
+                if (!response.ok) throw new Error('加载失败');
+
+                const data = await response.json();
+                const select = document.getElementById('applicationSelect');
+
+                if (data.data && data.data.length > 0) {
+                    select.innerHTML = '<option value="">-- 请选择 --</option>';
+                    data.data.forEach(app => {
+                        select.innerHTML += `
+                            <option value="${app.uuid}">
+                                ${app.employee?.name || '未知'} - ${app.employee?.department || '未知部门'} - ${app.status}
+                            </option>
+                        `;
+                    });
+                    log(`加载了 ${data.data.length} 个离职申请`, 'success');
+
+                    // 默认选择ID为7的申请（如果存在）
+                    const defaultApp = data.data.find(app => app.id === 7);
+                    if (defaultApp) {
+                        select.value = defaultApp.uuid;
+                        await selectApplication();
+                    }
+                } else {
+                    select.innerHTML = '<option value="">暂无离职申请</option>';
+                    log('暂无离职申请', 'info');
+                }
+            } catch (error) {
+                log('加载失败: ' + error.message, 'error');
+            }
+        }
+
+        // 选择申请
+        async function selectApplication() {
+            const uuid = document.getElementById('applicationSelect').value;
+            if (!uuid) return;
+
+            try {
+                log(`加载申请详情: ${uuid}`);
+                const response = await fetch(`${apiUrl}/resignations/${uuid}`, {
+                    headers: {
+                        'Authorization': `Bearer ${adminToken}`
+                    }
+                });
+
+                if (!response.ok) throw new Error('加载失败');
+
+                const data = await response.json();
+                selectedApplication = data.data;
+
+                // 显示申请信息
+                document.getElementById('applicationInfo').style.display = 'block';
+                document.getElementById('employeeName').textContent = selectedApplication.employee?.name || '-';
+                document.getElementById('department').textContent = selectedApplication.employee?.department || '-';
+                document.getElementById('applicationStatus').innerHTML =
+                    `<span class="status status-${selectedApplication.status === 'approved' ? 'success' : 'info'}">${selectedApplication.status}</span>`;
+
+                // 检查签名状态
+                await checkSignatureStatus();
+
+                // 查找相关报告
+                await findRelatedReport();
+
+            } catch (error) {
+                log('加载申请失败: ' + error.message, 'error');
+            }
+        }
+
+        // 检查签名状态
+        async function checkSignatureStatus() {
+            if (!selectedApplication) return;
+
+            try {
+                const response = await fetch(`${apiUrl}/resignations/${selectedApplication.uuid}/signatures`);
+                if (!response.ok) throw new Error('获取签名失败');
+
+                const data = await response.json();
+                const signatures = data.data || [];
+
+                const signerTypes = ['employee', 'hr', 'manager'];
+                const typeNames = {
+                    'employee': '员工本人',
+                    'hr': '人力资源部',
+                    'manager': '部门主管'
+                };
+
+                let statusHTML = '<div style="display: flex; justify-content: space-around; flex-wrap: wrap;">';
+
+                signerTypes.forEach(type => {
+                    const signed = signatures.find(s => s.signer_type === type);
+                    if (signed) {
+                        statusHTML += `<span class="status status-success">${typeNames[type]}: ✅ 已签名</span>`;
+                        document.getElementById(`${type}Status`).innerHTML =
+                            '<span class="status status-success">✅ 已签名</span>';
+                    } else {
+                        statusHTML += `<span class="status status-warning">${typeNames[type]}: ⏳ 待签名</span>`;
+                        document.getElementById(`${type}Status`).innerHTML =
+                            '<span class="status status-warning">⏳ 待签名</span>';
+                    }
+                });
+
+                statusHTML += '</div>';
+                document.getElementById('signatureStatus').innerHTML = statusHTML;
+
+                log(`签名状态: ${signatures.length}/3 已完成`, 'info');
+
+            } catch (error) {
+                log('获取签名状态失败: ' + error.message, 'error');
+            }
+        }
+
+        // 查找相关报告
+        async function findRelatedReport() {
+            if (!selectedApplication) return;
+
+            try {
+                const response = await fetch(`${apiUrl}/resignation-reports`, {
+                    headers: {
+                        'Authorization': `Bearer ${adminToken}`
+                    }
+                });
+
+                if (!response.ok) throw new Error('获取报告列表失败');
+
+                const data = await response.json();
+                const reports = data.data || [];
+
+                // 查找与当前申请相关的报告
+                const relatedReport = reports.find(r => r.application_id === selectedApplication.id);
+
+                if (relatedReport) {
+                    currentReportId = relatedReport.id;
+                    log(`找到相关报告 ID: ${currentReportId}`, 'info');
+                    document.getElementById('reportResult').innerHTML =
+                        `<div class="alert alert-info">当前报告 ID: ${currentReportId}</div>`;
+                } else {
+                    log('未找到相关报告，需要先创建报告', 'warning');
+                    document.getElementById('reportResult').innerHTML =
+                        '<div class="alert alert-warning">未找到相关报告，将创建新报告</div>';
+                }
+
+            } catch (error) {
+                log('查找报告失败: ' + error.message, 'error');
+            }
+        }
+
+        // 提交签名
+        async function submitSignature(signerType) {
+            if (!selectedApplication) {
+                alert('请先选择离职申请');
+                return;
+            }
+
+            const canvasId = signerType + 'Canvas';
+            const canvas = document.getElementById(canvasId);
+            const signatureData = canvas.toDataURL();
+
+            try {
+                log(`提交 ${signerType} 签名...`);
+
+                const response = await fetch(`${apiUrl}/resignations/sign`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        application_id: selectedApplication.uuid,
+                        signer_type: signerType,
+                        signature_data: signatureData,
+                        device_info: 'Signature Tool'
+                    })
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || '签名失败');
+                }
+
+                log(`${signerType} 签名提交成功！`, 'success');
+                document.getElementById(`${signerType}Status`).innerHTML =
+                    '<span class="status status-success">✅ 已签名</span>';
+
+                // 刷新签名状态
+                await checkSignatureStatus();
+
+            } catch (error) {
+                log(`${signerType} 签名失败: ${error.message}`, 'error');
+            }
+        }
+
+        // 一键添加所有签名
+        async function submitAllSignatures() {
+            if (!selectedApplication) {
+                alert('请先选择离职申请');
+                return;
+            }
+
+            log('开始批量添加签名...', 'info');
+
+            // 自动生成所有签名
+            autoSign('employeeCanvas', selectedApplication.employee?.name || '员工');
+            autoSign('hrCanvas', 'HR审核');
+            autoSign('managerCanvas', '部门主管');
+
+            // 提交所有签名
+            await submitSignature('employee');
+            await submitSignature('hr');
+            await submitSignature('manager');
+
+            log('所有签名添加完成！', 'success');
+        }
+
+        // 重新生成报告
+        async function regenerateReport() {
+            if (!selectedApplication) {
+                alert('请先选择离职申请');
+                return;
+            }
+
+            const btn = document.getElementById('regenerateBtn');
+            btn.disabled = true;
+            btn.textContent = '⏳ 正在生成...';
+
+            try {
+                log('开始重新生成报告...');
+
+                // 如果有旧报告，先删除
+                if (currentReportId) {
+                    log(`删除旧报告 ID: ${currentReportId}`);
+                    await fetch(`${apiUrl}/resignation-reports/${currentReportId}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Authorization': `Bearer ${adminToken}`
+                        }
+                    });
+                }
+
+                // 创建新报告
+                log('创建新报告...');
+                const response = await fetch(`${apiUrl}/resignation-reports`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${adminToken}`
+                    },
+                    body: JSON.stringify({
+                        application_id: selectedApplication.id,
+                        work_summary: '完成了所有工作任务，项目文档已整理完毕',
+                        unfinished_tasks: '所有任务已交接给团队其他成员',
+                        company_property_returned: true,
+                        financial_settlement: true
+                    })
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || '创建报告失败');
+                }
+
+                const result = await response.json();
+                newReportId = result.data.id;
+
+                log(`✅ 新报告生成成功！ID: ${newReportId}`, 'success');
+
+                document.getElementById('reportResult').innerHTML =
+                    `<div class="alert alert-success">
+                        <strong>报告生成成功！</strong><br>
+                        新报告 ID: ${newReportId}<br>
+                        报告现在包含了所有签名信息
+                    </div>`;
+
+                document.getElementById('viewReportBtn').style.display = 'inline-block';
+                btn.textContent = '✅ 生成完成';
+
+            } catch (error) {
+                log('生成报告失败: ' + error.message, 'error');
+                btn.disabled = false;
+                btn.textContent = '🔄 重新生成报告';
+            }
+        }
+
+        // 查看报告
+        async function viewReport() {
+            const reportId = newReportId || currentReportId;
+            if (!reportId) {
+                alert('没有可查看的报告');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${apiUrl}/resignation-reports/${reportId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${adminToken}`
+                    }
+                });
+
+                if (!response.ok) throw new Error('获取报告失败');
+
+                const data = await response.json();
+                const report = data.data;
+
+                if (report.report_content) {
+                    const reportWindow = window.open('', '_blank', 'width=900,height=700');
+                    reportWindow.document.write(report.report_content);
+                    reportWindow.document.close();
+                    log('报告已在新窗口打开', 'success');
+                }
+
+            } catch (error) {
+                log('查看报告失败: ' + error.message, 'error');
+            }
+        }
+
+        // 初始化
+        window.addEventListener('DOMContentLoaded', function () {
+            if (!adminToken) {
+                log('未登录，请先登录管理系统', 'error');
+                setTimeout(() => {
+                    window.location.href = '/web/login.html';
+                }, 2000);
+                return;
+            }
+
+            // 初始化所有画布
+            initCanvas('employeeCanvas');
+            initCanvas('hrCanvas');
+            initCanvas('managerCanvas');
+
+            // 绑定选择事件
+            document.getElementById('applicationSelect').addEventListener('change', selectApplication);
+
+            // 加载申请列表
+            loadApplications();
+
+            log('系统初始化完成', 'success');
+        });
+    </script>
+</body>
+
+</html>

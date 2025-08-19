@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>离职文件签名</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .container {
+            max-width: 800px;
+            width: 100%;
+            background: white;
+            border-radius: 15px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .info-section {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        
+        .info-row:last-child {
+            margin-bottom: 0;
+        }
+        
+        .info-label {
+            font-weight: 600;
+            color: #555;
+        }
+        
+        .info-value {
+            color: #333;
+        }
+        
+        .signature-section {
+            margin-bottom: 30px;
+        }
+        
+        .signature-section h3 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+        
+        .signature-pad {
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            cursor: crosshair;
+            background: white;
+            display: block;
+            margin: 0 auto;
+        }
+        
+        .signature-controls {
+            margin-top: 15px;
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        
+        .btn-secondary {
+            background: #e2e8f0;
+            color: #333;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .alert-success {
+            background: #c6f6d5;
+            color: #22543d;
+            border: 1px solid #9ae6b4;
+        }
+        
+        .alert-error {
+            background: #fed7d7;
+            color: #742a2a;
+            border: 1px solid #fc8181;
+        }
+        
+        .alert-info {
+            background: #bee3f8;
+            color: #2c5282;
+            border: 1px solid #90cdf4;
+        }
+        
+        .existing-signatures {
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 1px solid #e2e8f0;
+        }
+        
+        .signature-item {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .signature-info {
+            flex: 1;
+        }
+        
+        .signature-status {
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .status-signed {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+        
+        .status-pending {
+            background: #fed7e2;
+            color: #742a2a;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+        }
+        
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+            
+            .info-row {
+                flex-direction: column;
+            }
+            
+            .info-label {
+                margin-bottom: 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="loadingSection" class="loading">
+            <div class="spinner"></div>
+            <p>正在加载离职申请信息...</p>
+        </div>
+        
+        <div id="mainContent" style="display: none;">
+            <div class="header">
+                <h1>离职文件电子签名</h1>
+                <p>请仔细核对信息后进行签名确认</p>
+            </div>
+            
+            <div id="alertContainer"></div>
+            
+            <div class="info-section">
+                <div class="info-row">
+                    <span class="info-label">员工姓名：</span>
+                    <span class="info-value" id="employeeName">-</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">员工编号：</span>
+                    <span class="info-value" id="employeeNo">-</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">部门：</span>
+                    <span class="info-value" id="department">-</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">职位：</span>
+                    <span class="info-value" id="position">-</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">离职类型：</span>
+                    <span class="info-value" id="resignationType">-</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">最后工作日：</span>
+                    <span class="info-value" id="lastWorkingDate">-</span>
+                </div>
+            </div>
+            
+            <div class="signature-section">
+                <h3>请选择您的身份并签名：</h3>
+                <div style="margin-bottom: 15px;">
+                    <select id="signerType" class="form-control" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+                        <option value="">请选择签名身份</option>
+                        <option value="employee">员工本人</option>
+                        <option value="hr">人力资源部</option>
+                        <option value="manager">部门主管</option>
+                    </select>
+                </div>
+                
+                <canvas id="signaturePad" class="signature-pad" width="600" height="200"></canvas>
+                
+                <div class="signature-controls">
+                    <button class="btn btn-secondary" onclick="clearSignature()">清除签名</button>
+                    <button class="btn btn-primary" onclick="submitSignature()" id="submitBtn">提交签名</button>
+                </div>
+            </div>
+            
+            <div class="existing-signatures" id="existingSignatures">
+                <h3>已有签名记录</h3>
+                <div id="signaturesList"></div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let applicationId = null;
+        let applicationData = null;
+        let signatureCanvas, signatureContext;
+        let isDrawing = false;
+        
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            // 从URL获取参数
+            const urlParams = new URLSearchParams(window.location.search);
+            applicationId = urlParams.get('id');
+            window.signToken = urlParams.get('token');
+            window.signerType = urlParams.get('type');
+            
+            if (!applicationId) {
+                showAlert('无效的签名链接', 'error');
+                document.getElementById('loadingSection').style.display = 'none';
+                return;
+            }
+            
+            // 如果有令牌，说明是通过安全链接访问的
+            if (window.signToken && window.signerType) {
+                // 禁用签名类型选择，自动设置为指定类型
+                setTimeout(() => {
+                    const signerSelect = document.getElementById('signerType');
+                    if (signerSelect) {
+                        signerSelect.value = window.signerType;
+                        signerSelect.disabled = true;
+                        
+                        // 添加提示
+                        const hint = document.createElement('p');
+                        hint.style.color = '#666';
+                        hint.style.fontSize = '14px';
+                        hint.textContent = `您正在以 ${getSignerType(window.signerType)} 身份进行签名`;
+                        signerSelect.parentNode.insertBefore(hint, signerSelect.nextSibling);
+                    }
+                }, 100);
+            }
+            
+            // 加载申请信息
+            loadApplicationData();
+            
+            // 初始化签名板
+            initSignaturePad();
+        });
+        
+        // 加载申请数据
+        async function loadApplicationData() {
+            try {
+                const response = await fetch(`/api/v1/resignations/${applicationId}`);
+                if (!response.ok) {
+                    throw new Error('加载失败');
+                }
+                
+                const data = await response.json();
+                applicationData = data.data;
+                
+                // 显示申请信息
+                displayApplicationInfo();
+                
+                // 加载已有签名
+                loadExistingSignatures();
+                
+                // 显示主内容
+                document.getElementById('loadingSection').style.display = 'none';
+                document.getElementById('mainContent').style.display = 'block';
+                
+            } catch (error) {
+                showAlert('加载离职申请信息失败: ' + error.message, 'error');
+                document.getElementById('loadingSection').style.display = 'none';
+            }
+        }
+        
+        // 显示申请信息
+        function displayApplicationInfo() {
+            if (!applicationData) return;
+            
+            document.getElementById('employeeName').textContent = applicationData.employee?.name || '-';
+            document.getElementById('employeeNo').textContent = applicationData.employee?.employee_no || '-';
+            document.getElementById('department').textContent = applicationData.employee?.department || '-';
+            document.getElementById('position').textContent = applicationData.employee?.position || '-';
+            document.getElementById('resignationType').textContent = getResignationType(applicationData.resignation_type);
+            document.getElementById('lastWorkingDate').textContent = formatDate(applicationData.last_working_date);
+        }
+        
+        // 加载已有签名
+        async function loadExistingSignatures() {
+            try {
+                const response = await fetch(`/api/v1/resignations/${applicationId}/signatures`);
+                if (!response.ok) {
+                    throw new Error('加载签名失败');
+                }
+                
+                const data = await response.json();
+                displaySignatures(data.data || []);
+                
+            } catch (error) {
+                console.error('加载签名失败:', error);
+            }
+        }
+        
+        // 显示签名列表
+        function displaySignatures(signatures) {
+            const container = document.getElementById('signaturesList');
+            
+            if (signatures.length === 0) {
+                container.innerHTML = '<p style="color: #999;">暂无签名记录</p>';
+                return;
+            }
+            
+            container.innerHTML = signatures.map(sig => `
+                <div class="signature-item">
+                    <div class="signature-info">
+                        <strong>${getSignerType(sig.signer_type)}</strong>
+                        <span style="color: #666; margin-left: 10px;">
+                            ${formatDateTime(sig.signed_at)}
+                        </span>
+                    </div>
+                    <span class="signature-status status-signed">已签名</span>
+                </div>
+            `).join('');
+            
+            // 禁用已签名的选项
+            signatures.forEach(sig => {
+                const option = document.querySelector(`#signerType option[value="${sig.signer_type}"]`);
+                if (option) {
+                    option.disabled = true;
+                    option.textContent += ' (已签名)';
+                }
+            });
+        }
+        
+        // 初始化签名板
+        function initSignaturePad() {
+            signatureCanvas = document.getElementById('signaturePad');
+            signatureContext = signatureCanvas.getContext('2d');
+            
+            // 设置画笔样式
+            signatureContext.strokeStyle = '#000';
+            signatureContext.lineWidth = 2;
+            signatureContext.lineCap = 'round';
+            
+            // 鼠标事件
+            signatureCanvas.addEventListener('mousedown', startDrawing);
+            signatureCanvas.addEventListener('mousemove', draw);
+            signatureCanvas.addEventListener('mouseup', stopDrawing);
+            signatureCanvas.addEventListener('mouseout', stopDrawing);
+            
+            // 触摸事件（移动设备）
+            signatureCanvas.addEventListener('touchstart', handleTouch);
+            signatureCanvas.addEventListener('touchmove', handleTouch);
+            signatureCanvas.addEventListener('touchend', stopDrawing);
+        }
+        
+        function startDrawing(e) {
+            isDrawing = true;
+            const rect = signatureCanvas.getBoundingClientRect();
+            signatureContext.beginPath();
+            signatureContext.moveTo(e.clientX - rect.left, e.clientY - rect.top);
+        }
+        
+        function draw(e) {
+            if (!isDrawing) return;
+            const rect = signatureCanvas.getBoundingClientRect();
+            signatureContext.lineTo(e.clientX - rect.left, e.clientY - rect.top);
+            signatureContext.stroke();
+        }
+        
+        function stopDrawing() {
+            isDrawing = false;
+        }
+        
+        function handleTouch(e) {
+            e.preventDefault();
+            const touch = e.touches[0];
+            const mouseEvent = new MouseEvent(e.type === 'touchstart' ? 'mousedown' : 'mousemove', {
+                clientX: touch.clientX,
+                clientY: touch.clientY
+            });
+            signatureCanvas.dispatchEvent(mouseEvent);
+        }
+        
+        // 清除签名
+        function clearSignature() {
+            signatureContext.clearRect(0, 0, signatureCanvas.width, signatureCanvas.height);
+        }
+        
+        // 提交签名
+        async function submitSignature() {
+            let signerType = document.getElementById('signerType').value;
+            
+            // 如果是通过令牌访问的，使用令牌中的签名类型
+            if (window.signToken && window.signerType) {
+                signerType = window.signerType;
+            }
+            
+            if (!signerType) {
+                showAlert('请选择签名身份', 'error');
+                return;
+            }
+            
+            // 检查是否有签名
+            const imageData = signatureContext.getImageData(0, 0, signatureCanvas.width, signatureCanvas.height);
+            const pixels = imageData.data;
+            let hasSignature = false;
+            
+            for (let i = 3; i < pixels.length; i += 4) {
+                if (pixels[i] > 0) {
+                    hasSignature = true;
+                    break;
+                }
+            }
+            
+            if (!hasSignature) {
+                showAlert('请先进行签名', 'error');
+                return;
+            }
+            
+            // 禁用提交按钮
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            submitBtn.textContent = '提交中...';
+            
+            try {
+                const signatureData = signatureCanvas.toDataURL();
+                
+                // 构建URL，如果有令牌则附加到URL中
+                let url = '/api/v1/resignations/sign';
+                if (window.signToken && window.signerType) {
+                    url += `?token=${encodeURIComponent(window.signToken)}&type=${encodeURIComponent(window.signerType)}`;
+                }
+                
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        application_id: applicationId,
+                        signer_type: signerType,
+                        signature_data: signatureData,
+                        device_info: navigator.userAgent
+                    })
+                });
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || '签名失败');
+                }
+                
+                const result = await response.json();
+                showAlert('签名提交成功！', 'success');
+                
+                // 如果是通过令牌访问的，显示成功消息并禁用进一步操作
+                if (window.signToken) {
+                    document.getElementById('submitBtn').style.display = 'none';
+                    showAlert('签名已成功提交！该链接已失效，无法再次使用。', 'success');
+                }
+                
+                // 清除签名板
+                clearSignature();
+                
+                // 重置选择（如果不是令牌模式）
+                if (!window.signToken) {
+                    document.getElementById('signerType').value = '';
+                }
+                
+                // 重新加载签名列表
+                loadExistingSignatures();
+                
+            } catch (error) {
+                showAlert('签名提交失败: ' + error.message, 'error');
+            } finally {
+                if (!window.signToken) {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = '提交签名';
+                }
+            }
+        }
+        
+        // 显示提示信息
+        function showAlert(message, type) {
+            const container = document.getElementById('alertContainer');
+            container.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
+            
+            if (type === 'success') {
+                setTimeout(() => {
+                    container.innerHTML = '';
+                }, 3000);
+            }
+        }
+        
+        // 工具函数
+        function getResignationType(type) {
+            const types = {
+                'voluntary': '主动离职',
+                'dismissal': '辞退',
+                'contract_expiry': '合同到期'
+            };
+            return types[type] || type;
+        }
+        
+        function getSignerType(type) {
+            const types = {
+                'employee': '员工本人',
+                'hr': '人力资源部',
+                'manager': '部门主管'
+            };
+            return types[type] || type;
+        }
+        
+        function formatDate(dateStr) {
+            if (!dateStr) return '-';
+            const date = new Date(dateStr);
+            return date.toLocaleDateString('zh-CN');
+        }
+        
+        function formatDateTime(dateStr) {
+            if (!dateStr) return '-';
+            const date = new Date(dateStr);
+            return date.toLocaleString('zh-CN');
+        }
+    </script>
+</body>
+</html>

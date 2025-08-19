@@ -218,13 +218,95 @@ class PayrollManager {
     }
 
     async getClientIP() {
+        // 方法1: 尝试使用服务器端IP检测API
         try {
-            const response = await fetch('https://api.ipify.org?format=json');
-            const data = await response.json();
-            return data.ip;
+            const response = await fetch('/api/v1/client-ip');
+            if (response.ok) {
+                const data = await response.json();
+                if (data.ip_address && data.ip_address !== '未知IP' && data.ip_address !== '') {
+                    return data.ip_address;
+                }
+            }
         } catch (error) {
-            return '未知IP';
+            console.log('服务器IP检测失败:', error);
         }
+
+        // 方法2: 尝试使用外部IP服务 (ipify.org)
+        try {
+            const response = await fetch('https://api.ipify.org?format=json', {
+                timeout: 3000  // 3秒超时
+            });
+            if (response.ok) {
+                const data = await response.json();
+                if (data.ip) {
+                    return data.ip;
+                }
+            }
+        } catch (error) {
+            console.log('外部IP服务失败:', error);
+        }
+
+        // 方法3: 尝试使用其他外部IP服务
+        try {
+            const response = await fetch('https://httpbin.org/ip', {
+                timeout: 3000
+            });
+            if (response.ok) {
+                const data = await response.json();
+                if (data.origin) {
+                    return data.origin.split(',')[0].trim(); // 取第一个IP
+                }
+            }
+        } catch (error) {
+            console.log('备用IP服务失败:', error);
+        }
+
+        // 方法4: 尝试通过WebRTC获取本地IP (仅作为最后手段)
+        try {
+            const ip = await this.getLocalIPviaWebRTC();
+            if (ip && ip !== '未知IP') {
+                return ip + ' (本地网络)';
+            }
+        } catch (error) {
+            console.log('WebRTC IP检测失败:', error);
+        }
+
+        // 如果所有方法都失败，返回友好的错误信息
+        return '未知IP (网络连接受限)';
+    }
+
+    // WebRTC方法获取本地IP (用于离线环境)
+    async getLocalIPviaWebRTC() {
+        return new Promise((resolve, reject) => {
+            try {
+                const pc = new RTCPeerConnection({
+                    iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
+                });
+                
+                pc.createDataChannel('');
+                pc.createOffer().then(offer => pc.setLocalDescription(offer));
+                
+                const timeout = setTimeout(() => {
+                    pc.close();
+                    resolve('未知IP');
+                }, 3000);
+                
+                pc.onicecandidate = (event) => {
+                    if (!event.candidate) return;
+                    
+                    const candidate = event.candidate.candidate;
+                    const match = candidate.match(/([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+)/);
+                    
+                    if (match && !match[1].startsWith('127.')) {
+                        clearTimeout(timeout);
+                        pc.close();
+                        resolve(match[1]);
+                    }
+                };
+            } catch (error) {
+                resolve('未知IP');
+            }
+        });
     }
 
     getDeviceInfo() {

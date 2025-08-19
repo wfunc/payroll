@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>离职报告查看器</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Microsoft YaHei', 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #667eea;
+        }
+
+        .header h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .controls {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+            font-weight: 500;
+        }
+
+        .form-group select,
+        .form-group button {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s;
+            margin: 5px;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-success {
+            background: #48bb78;
+            color: white;
+        }
+
+        .btn-info {
+            background: #4299e1;
+            color: white;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .report-container {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 30px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .report-content {
+            line-height: 1.8;
+        }
+
+        .report-section {
+            margin: 25px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .report-section h2 {
+            color: #667eea;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .info-row {
+            margin: 10px 0;
+            display: flex;
+            align-items: center;
+        }
+
+        .info-label {
+            font-weight: bold;
+            color: #555;
+            min-width: 120px;
+            display: inline-block;
+        }
+
+        .info-value {
+            color: #333;
+        }
+
+        .signature-box {
+            margin: 15px 0;
+            padding: 15px;
+            background: white;
+            border-radius: 5px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .signature-image {
+            max-width: 300px;
+            height: 100px;
+            border: 1px solid #ddd;
+            background: white;
+            padding: 5px;
+            margin: 10px 0;
+        }
+
+        .signature-status {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .status-signed {
+            background: #c6f6d5;
+            color: #22543d;
+        }
+
+        .status-pending {
+            background: #fed7e2;
+            color: #742a2a;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .alert-info {
+            background: #bee3f8;
+            color: #2c5282;
+            border: 1px solid #90cdf4;
+        }
+
+        .alert-success {
+            background: #c6f6d5;
+            color: #22543d;
+            border: 1px solid #9ae6b4;
+        }
+
+        .alert-error {
+            background: #fed7d7;
+            color: #742a2a;
+            border: 1px solid #fc8181;
+        }
+
+        .button-group {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+
+            .container {
+                box-shadow: none;
+                padding: 0;
+            }
+
+            .controls,
+            .button-group {
+                display: none;
+            }
+
+            .report-section {
+                background: white;
+                border: 1px solid #ddd;
+            }
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📋 离职报告查看器</h1>
+            <p>查看和打印员工离职报告</p>
+        </div>
+
+        <div class="controls">
+            <div class="form-group">
+                <label>选择离职报告</label>
+                <select id="reportSelect">
+                    <option value="">-- 请选择报告 --</option>
+                </select>
+            </div>
+
+            <div class="button-group">
+                <button class="btn btn-primary" onclick="loadReports()">刷新列表</button>
+                <button class="btn btn-success" onclick="loadSelectedReport()">查看报告</button>
+            </div>
+        </div>
+
+        <div id="alertContainer"></div>
+
+        <div id="reportContainer" class="report-container">
+            <div id="reportContent" class="report-content">
+                <!-- 报告内容将在这里显示 -->
+            </div>
+
+            <div class="button-group">
+                <button class="btn btn-primary" onclick="window.print()">🖨️ 打印报告</button>
+                <button class="btn btn-info" onclick="exportPDF()">📄 导出PDF</button>
+                <button class="btn btn-success" onclick="downloadReport()">💾 下载报告</button>
+            </div>
+        </div>
+
+        <div id="loadingContainer" class="loading" style="display: none;">
+            <div class="spinner"></div>
+            <p>正在加载报告...</p>
+        </div>
+    </div>
+
+    <script>
+        const apiUrl = '/api/v1';
+        const adminToken = localStorage.getItem('adminToken');
+        let currentReport = null;
+
+        // 初始化
+        window.addEventListener('DOMContentLoaded', function () {
+            if (!adminToken) {
+                showAlert('未登录，请先登录管理系统', 'error');
+                setTimeout(() => {
+                    window.location.href = '/web/login.html';
+                }, 2000);
+                return;
+            }
+
+            loadReports();
+        });
+
+        // 加载报告列表
+        async function loadReports() {
+            try {
+                showLoading(true);
+                const response = await fetch(`${apiUrl}/resignation-reports`, {
+                    headers: {
+                        'Authorization': `Bearer ${adminToken}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('获取报告列表失败');
+                }
+
+                const data = await response.json();
+                const select = document.getElementById('reportSelect');
+
+                if (data.data && data.data.length > 0) {
+                    select.innerHTML = '<option value="">-- 请选择报告 --</option>';
+                    data.data.forEach(report => {
+                        const employee = report.application?.employee;
+                        const optionText = `${employee?.name || '未知'} - ${employee?.department || '未知部门'} - ${formatDate(report.generated_at)}`;
+                        select.innerHTML += `<option value="${report.id}">${optionText}</option>`;
+                    });
+                    showAlert(`成功加载 ${data.data.length} 个离职报告`, 'success');
+                } else {
+                    select.innerHTML = '<option value="">暂无离职报告</option>';
+                    showAlert('暂无离职报告', 'info');
+                }
+            } catch (error) {
+                showAlert('加载失败: ' + error.message, 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // 加载选中的报告
+        async function loadSelectedReport() {
+            const reportId = document.getElementById('reportSelect').value;
+            if (!reportId) {
+                showAlert('请选择一个报告', 'error');
+                return;
+            }
+
+            try {
+                showLoading(true);
+                const response = await fetch(`${apiUrl}/resignation-reports/${reportId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${adminToken}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('获取报告详情失败');
+                }
+
+                const data = await response.json();
+                currentReport = data.data;
+                displayReport(currentReport);
+
+            } catch (error) {
+                showAlert('加载报告失败: ' + error.message, 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // 显示报告
+        function displayReport(report) {
+            const container = document.getElementById('reportContainer');
+            const content = document.getElementById('reportContent');
+
+            if (report.report_content) {
+                // 如果有HTML内容，直接显示
+                content.innerHTML = report.report_content;
+            } else {
+                // 否则构建显示内容
+                const employee = report.application?.employee;
+                const app = report.application;
+
+                content.innerHTML = `
+                    <h1 style="text-align: center; color: #333; border-bottom: 2px solid #667eea; padding-bottom: 10px;">
+                        离职报告
+                    </h1>
+                    
+                    <div class="report-section">
+                        <h2>员工基本信息</h2>
+                        <div class="info-row">
+                            <span class="info-label">员工姓名:</span>
+                            <span class="info-value">${employee?.name || '-'}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">员工编号:</span>
+                            <span class="info-value">${employee?.employee_no || '-'}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">部门:</span>
+                            <span class="info-value">${employee?.department || '-'}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">职位:</span>
+                            <span class="info-value">${employee?.position || '-'}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">离职类型:</span>
+                            <span class="info-value">${getResignationType(app?.resignation_type)}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">离职原因:</span>
+                            <span class="info-value">${app?.reason || '-'}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">最后工作日:</span>
+                            <span class="info-value">${formatDate(app?.last_working_date)}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="report-section">
+                        <h2>工作总结</h2>
+                        <p>${report.work_summary || '无'}</p>
+                    </div>
+                    
+                    <div class="report-section">
+                        <h2>未完成事项</h2>
+                        <p>${report.unfinished_tasks || '无'}</p>
+                    </div>
+                    
+                    <div class="report-section">
+                        <h2>交接状态</h2>
+                        <div class="info-row">
+                            <span class="info-label">公司财产归还:</span>
+                            <span class="info-value">${report.company_property_returned ? '✅ 是' : '❌ 否'}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">财务结清:</span>
+                            <span class="info-value">${report.financial_settlement ? '✅ 是' : '❌ 否'}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="report-section">
+                        <h2>报告信息</h2>
+                        <div class="info-row">
+                            <span class="info-label">生成时间:</span>
+                            <span class="info-value">${formatDateTime(report.generated_at)}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">生成人:</span>
+                            <span class="info-value">${report.generated_by || '系统管理员'}</span>
+                        </div>
+                    </div>
+                `;
+            }
+
+            container.style.display = 'block';
+            showAlert('报告加载成功', 'success');
+        }
+
+        // 下载报告
+        function downloadReport() {
+            if (!currentReport) {
+                showAlert('请先选择并加载一个报告', 'error');
+                return;
+            }
+
+            const content = currentReport.report_content || document.getElementById('reportContent').innerHTML;
+            const blob = new Blob([content], { type: 'text/html;charset=utf-8' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `离职报告_${currentReport.application?.employee?.name || '未知'}_${formatDate(new Date())}.html`;
+            a.click();
+            window.URL.revokeObjectURL(url);
+
+            showAlert('报告下载成功', 'success');
+        }
+
+        // 导出PDF（需要额外的库支持，这里只是占位）
+        function exportPDF() {
+            showAlert('PDF导出功能需要额外配置，暂时请使用打印功能', 'info');
+            window.print();
+        }
+
+        // 显示提示
+        function showAlert(message, type) {
+            const container = document.getElementById('alertContainer');
+            container.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
+
+            if (type === 'success') {
+                setTimeout(() => {
+                    container.innerHTML = '';
+                }, 3000);
+            }
+        }
+
+        // 显示加载状态
+        function showLoading(show) {
+            document.getElementById('loadingContainer').style.display = show ? 'block' : 'none';
+        }
+
+        // 工具函数
+        function getResignationType(type) {
+            const types = {
+                'voluntary': '主动离职',
+                'dismissal': '辞退',
+                'contract_expiry': '合同到期'
+            };
+            return types[type] || type || '-';
+        }
+
+        function formatDate(dateStr) {
+            if (!dateStr) return '-';
+            const date = new Date(dateStr);
+            return date.toLocaleDateString('zh-CN');
+        }
+
+        function formatDateTime(dateStr) {
+            if (!dateStr) return '-';
+            const date = new Date(dateStr);
+            return date.toLocaleString('zh-CN');
+        }
+    </script>
+</body>
+
+</html>
