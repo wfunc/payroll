@@ -1,0 +1,24 @@
+{
+  "name": "payroll",
+  "version": "1.0.0",
+  "description": "[![Go Version](https://img.shields.io/badge/Go-1.21+-blue.svg)](https://golang.org) [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE) [![Build Status](https://img.shields.io/badge/Build-Passing-brightgreen.svg)](https://github.com/wfunc/payroll)",
+  "main": "test-resignation-signatures.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wfunc/payroll.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/wfunc/payroll/issues"
+  },
+  "homepage": "https://github.com/wfunc/payroll#readme",
+  "dependencies": {
+    "playwright": "^1.54.2"
+  }
+}

@@ -87,6 +87,37 @@ coverage.txt
 coverage.html
 coverage.out
 
+# Test artifacts
+tests/screenshots/*.png
+tests/e2e/*.png
+test-*.png
+test-*.html
+*.test.js
+
+# Development and debugging files
+quick-test.js
+debug-*.js
+temp-*.js
+
 # Air live reload (if using)
 .air.toml
 tmp/
+
+# Build files
+payroll
+payroll-system
+payroll-linux
+payroll-windows.exe
+payroll-darwin
+
+# Serena development files
+.serena/cache/
+.serena/memories/
+
+# Package files
+package-lock.json
+yarn.lock
+
+# Server logs
+server.log
+nohup.out
